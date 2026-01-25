@@ -1,0 +1,259 @@
+:root {
+    --primary-color: #660874;
+    /* Tsinghua Purple */
+    --secondary-color: #4a0652;
+    --text-color: #333;
+    --light-text: #666;
+    --bg-color: #ffffff;
+    --section-bg: #f9f9f9;
+    --accent-color: #ef4444;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    overflow-x: hidden;
+}
+
+/* Header & Navigation */
+header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+nav {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+
+.nav-links li {
+    margin-left: 2rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color 0.3s;
+    font-size: 0.95rem;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+/* Main Content Layout */
+main {
+    max-width: 1000px;
+    margin: 6rem auto 4rem;
+    padding: 0 2rem;
+}
+
+/* Hero Section */
+.hero {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    margin-bottom: 4rem;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero-image {
+    width: 280px;
+    height: 420px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.bio {
+    font-size: 1.1rem;
+    color: var(--light-text);
+    margin-bottom: 2rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--light-text);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    transition: all 0.3s;
+}
+
+.social-link:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Sections */
+section {
+    padding: 4rem 0;
+    border-top: 1px solid #eee;
+}
+
+section h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+/* Publications */
+.publication-item {
+    margin-bottom: 2rem;
+    padding-left: 1rem;
+    border-left: 3px solid #eee;
+    transition: border-color 0.3s;
+}
+
+.publication-item:hover {
+    border-left-color: var(--primary-color);
+}
+
+.pub-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.pub-authors {
+    color: var(--light-text);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.pub-venue {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.pub-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+}
+
+/* News */
+.news-item {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.news-date {
+    min-width: 100px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--light-text);
+    background: var(--section-bg);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeInUp 0.8s forwards;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
