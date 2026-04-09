@@ -1,0 +1,141 @@
+\logosection{\faGraduationCap}{教育经历}
+\datedline{\textbf{清华大学 Tsinghua University}} {\dateRange{2024.09}{2027.06}}
+
+计算机系博士研究生（研究方向：机器学习系统，大模型高效推理，推测解码） \hfill {北京}
+\datedline{\textbf{康奈尔大学纽约校区 Cornell Tech} \quad GPA: 3.72/ 4.00}{\dateRange{2017.08}{2018.05}}
+
+计算机科学工程硕士 \quad Master of Engineering in Computer Science  \hfill {美国纽约州纽约市}
+
+% \begin{itemize}
+%   \item 奖项：全年荣誉奖学金 Merit-based Scholarship
+%   \item 研究经历：Cornell Tech 自然语言处理研究组，合作论文发表于 ACL 2019
+%   \item 主修课程：应用机器学习、自然语言处理、计算机视觉、算法导论
+% \end{itemize}
+
+\datedline{\textbf{康奈尔大学 Cornell University} \quad GPA：3.65 / 4.00}{\dateRange{2013.08}{2017.05}}
+
+数学和计算机双专业学士 \quad Bachelor of Arts in Maths and CS \hfill {美国纽约州伊萨卡市}
+% \begin{itemize}
+%   \item 主修课程：机器学习、算法导论、人工智能、数据库系统、数值分析、线性规划等 % save space: 面向对象编程和数据结构、操作系统
+% \end{itemize}
+
+% save space
+% \datedline{\textbf{中国人民大学附属中学}}{\dateRange{2007.09}{2013.07}}
+% \datedline{\tripleInfo{初中}{高中}{理科实验班}}{北京}
+% \begin{itemize}
+%   \item 社团活动：社团联合会主席、书法社社长
+% \end{itemize}
+
+\logosection{\faUniversity}{论文发表}
+
+% {\fontsize{9.5pt}{11pt}\selectfont
+%
+% \textbf{共同一作} An, Z., \textbf{Bai, H.} et al. PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation. ICLR 2026.
+%
+% \textbf{第一作者} \textbf{Bai, H.} et al. Efficient Speculative Decoding for AI PCs via Hierarchical N-Gram Retrieval. MobiCom 2025 (Workshop).
+%
+% \textbf{共同一作} Yang, R., \textbf{Bai, H.} et al. SpecExit: Accelerating Large Reasoning Model via Speculative Exit. arXiv 2025.
+%
+% \textbf{第一作者} \textbf{Bai, H.} and Liu, D. et al. Expressive user embedding from churn and recommendation multi-task learning. WWW 2023.
+%
+% \textbf{共同作者} Yang, Z., \textbf{Bai, H.} et al. FACE: Evaluating Natural Language Generation with Fourier Analysis of Cross-Entropy. NeurIPS 2023.
+%
+% % save space, as this work is not published on venues
+% % \textbf{共同一作} Yang, Z., \textbf{Bai, H.} et al. PaCaNet: A Study on CycleGAN with Transfer Learning for Diversifying Fused Chinese Painting and Calligraphy. arXiv 2023.
+%
+% \textbf{共同作者} Suhr, A., \textbf{Bai, H.} et al. A Corpus for Reasoning about Natural Language Grounded in Photographs. ACL 2019. 
+% }
+
+{\fontsize{10pt}{12pt}\selectfont % {font}{line-space}
+
+\textbf{第一作者} Efficient Speculative Decoding for AI PCs via Hierarchical N-Gram Retrieval. MobiCom 2025 (Workshop).
+
+\textbf{第一作者} Expressive user embedding from churn and recommendation multi-task learning. WWW 2023.
+
+\textbf{共同一作} SpecExit: Accelerating Large Reasoning Model via Speculative Exit. Under Review.
+
+\textbf{共同一作} PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation. ICLR 2026.
+
+\textbf{共同作者} FACE: Evaluating Natural Language Generation with Fourier Analysis of Cross-Entropy. NeurIPS 2023.
+
+\textbf{共同作者} A Corpus for Reasoning about Natural Language Grounded in Photographs. ACL 2019.
+}
+% 谷歌学术引用400+
+
+
+\logosection{\faSuitcase}{工作经历}
+
+\datedline{\textbf{腾讯Tencent}}{\dateRange{2025.06}{至今}}
+\datedline{AI Infra组推理加速实习生}{北京}
+
+\begin{itemize}
+      \item 使用“思考早停”技术缓解大模型的过度思考问题。基于此实现的推测解码系统 \textbf{SpecExit} 在 Qwen3-4B 模型上将 GSM8K 等数据集推理长度缩减 54\%\textasciitilde66\%，相比基线提升最高 2.5 倍端到端加速比且准确率无损；相关论文已投稿。
+      \item 使用推测解码加速大模型强化学习（RL）中的 rollout 过程，通过高效生成缓解了训练的长尾瓶颈。基于 \textbf{verl} 框架与 \textbf{sglang} 推理后端，在 Qwen3-1.7B 和 8B 模型的强化训练中分别取得了 \textbf{2.3倍} 和 \textbf{1.2倍} 的 rollout 吞吐提升。
+\end{itemize}
+
+\datedline{\textbf{AMD中国}}{\dateRange{2024.05}{2025.06}}
+\datedline{大模型科研实习生}{北京}
+
+\begin{itemize}
+      \item 设计并实现了并行草稿推测解码方法 \textbf{PARD (PARallel Draft)}，通过单次推理预测多未来 \textit{token} 提升草稿模型效率，在 LLaMA3.1-8B 上取得 \textbf{311.5 TPS}，实现了 \textbf{4.08倍} 的推理加速；相关论文已被 ICLR 2026 接收。
+      \item 针对 AI PC 端侧大模型推理场景内存与计算资源受限问题，提出并实现了基于 \textbf{NGram} 层次化缓存的推测解码系统 \textbf{NG+}。通过内存-SSD分层存储频繁N-gram，并使用CPU检索与iGPU验证的计算重叠隐藏I/O延迟。在 AMD Ryzen™ AI MAX+ 395 平台上，实现了相较于自回归基线 \textbf{1.62倍} 的加速；相关成果已被 MobiCom 2025 Workshop 接收。
+\end{itemize}
+
+\datedline{\textbf{北京伯贝网络教育科技有限公司}}{\dateRange{2021.10}{2024.05}}
+\datedline{NLP算法工程师}{北京}
+% \datedline{LLM大语言模型技术负责人、NLP算法工程师}{北京}
+
+% 为企业客户开发新闻数据的智能处理系统
+
+\begin{itemize}
+      \item 开发基于人工智能的新闻打标签系统，自动识别出新闻稿件的话题、主题和领域，节省人力打标签成本。使用基于ERNIE3.0的文本分类模型进行层级分类，处理常驻标签，准确率达到93\%；使用基于PEGASUS的文本摘要模型识别未知话题，Rouge-1得分达到0.65
+      \item RAG-LLM: 开发基于LLM的新闻知识问答系统，使用企业私有新闻数据进行向量化查找，检索增强后的大语言模型可以进行新闻内容的准确问答对话，系统支持多种LLM包括ChatGLM，Qwen，ChatGPT等
+    %   \item Tool-using LLM Agent: 开发基于LangChain和ChatGLM数据库智能问答助手，基于sqlite的每日万级数据量的新闻数据，实现自然语言转SQL查询语言的数据精准查询
+\end{itemize}
+
+% \datedline{\textbf{Genify.ai}}{\dateRange{2022.07}{2023.01}}
+% \datedline{研究员}{远程/北京}
+% % \datedline{\tripleInfo{实习}{水手}{花式摸鱼工程师}}{精神家园}
+
+% 负责开发面向银行客户的金融产品推荐系统
+
+% \begin{itemize}
+%       % \item 研发一套同时完成客户流失预测和最佳产品推荐的推荐系统模型，证明了多任务模型在两个任务的精确度和召回率上表现优于单任务模型。探索了模型产出的用户embedding的商业价值前景。
+%       \item 以第一作者身份在WWW'23 (CCF-A类国际会议)上发表论文 Expressive user embedding from churn and recommendation multi-task learning.
+% \end{itemize}
+
+% Save place for 2026 update
+\datedline{\textbf{新浪微博}}{\dateRange{2019.12}{2021.06}}
+\datedline{推荐算法工程师}{北京}
+
+\begin{itemize}
+      % save space for academic resume
+      % \item 负责微博关注流重要指标（UV，曝光，互动量等）的监控，使用hive sql定期查询数值并写入内部可视化监控平台，完成千万级uv和百亿级曝光量级的统计，每周通过shell脚本生成邮件将本周数据至相关人。同时，对于数据异常的波动，分析原因并在周会上汇报
+      % \item 在2020年底新开展的微博视频社交流中，通过相应视频特征的完播率、有效播放率的数据分析，结合abtest平台，帮助制定初版视频排序策略的多维度权重分配，在两周内提升了社交视频流的有效播放率30\%
+      \item 为了解决微博关注流曝光博主多样性较低问题，基于社交关系分发进行未读池改造。通过用户间关系和互动行为刻画社交关系，在召回过程对社交关系型用户进行配额，提升了曝光博主多样性40\%。排序使用DeepFM模型auc达到0.86，业务指标人均曝光量提升3\%. 
+\end{itemize}
+
+% save space for academic resume to fit in one-page
+% \logosection{\faCogs}{专业技能}
+
+% \begin{itemize}[parsep=0.5ex]
+%   \item 英语：托福110，GRE334。无障碍进行英文文献阅读、写作和演讲。 %，可全英文环境工作
+%   \item 编程语言：Python, Java, SQL, Hive SQL, Bash, Linux Shell, C, C++, MATLAB, Julia
+%   \item 机器学习模型：Transformer, BERT， LR, GBDT, FM, DeepFM, ResNet 
+%   \item 深度学习框架和工具: pytorch, paddle, huggingface, LangChain
+% \end{itemize}
+
+
+% \logosection{\faHeart}{获奖情况}
+% \datedline{NeurIPS Best Paper Award}{2099.12}
+
+% \logosection{\faInfo}{其他}
+
+% % increase linespacing [parsep=0.5ex]
+% \begin{itemize}[parsep=0.5ex]
+%   \item 技术博客: http://blog.yours.me
+%   \item GitHub: https://github.com/username
+%   \item 语言: 英语 - 熟练(TOEFL xxx)
+% \end{itemize}
+
+%%%% 如果多页简历，可以手动在适当位置插入 \newpage 或者 \clearpage 开始新一页
