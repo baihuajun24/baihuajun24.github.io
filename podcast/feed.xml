@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Huajun Daily arXiv Podcast</title>
+    <link>https://baihuajun24.github.io/podcast/</link>
+    <atom:link href="https://baihuajun24.github.io/podcast/feed.xml" rel="self" type="application/rss+xml" />
+    <description><![CDATA[Daily short audio notes on arXiv papers, LLM systems, agents, and inference research.]]></description>
+    <language>en-us</language>
+    <copyright>Copyright 2026 Huajun Bai</copyright>
+    <lastBuildDate>Thu, 04 Jun 2026 12:55:55 GMT</lastBuildDate>
+    <image>
+      <url>https://baihuajun24.github.io/podcast/assets/cover.jpg</url>
+      <title>Huajun Daily arXiv Podcast</title>
+      <link>https://baihuajun24.github.io/podcast/</link>
+    </image>
+    <itunes:author>Huajun Bai</itunes:author>
+    <itunes:summary><![CDATA[Daily short audio notes on arXiv papers, LLM systems, agents, and inference research.]]></itunes:summary>
+    <itunes:image href="https://baihuajun24.github.io/podcast/assets/cover.jpg" />
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="Technology" />
+    <item>
+      <title>0604 Daily arXiv: Agentic RL, Runtime, SpecDecoding</title>
+      <description><![CDATA[# 0604 Daily arXiv Podcast: Agentic RL Systems, Agent Runtime, and Speculative Decoding
+
+Audio: 08:40
+
+## 内容时间戳
+
+- 00:00 Opening: 0603 daily arXiv feed
+  - 今日主线是 agentic RL 系统、LLM agent 运行时，以及两篇引用 PARD 的 speculative decoding 新论文。
+
+- 00:21 Libra: Efficient Resource Management for Agentic RL Post-Training
+  - 作者团队来自 The Chinese University of Hong Kong 和 The Hang Seng University of Hong Kong。
+  - 重点：agentic RL rollout 会产生长尾、非平稳的工具调用轨迹，静态 GPU 切分会很快失效。
+  - 方法：全局资源 planner 在 rollout/training 之间动态分配 GPU；C-MLFQ 用工具返回的因果信号做 rollout bucket 路由。
+  - 亮点：48 张 A800 上最高 3.0x 吞吐提升、2.5x reward 收敛加速，是今天最值得读的系统论文。
+
+- 02:13 Agent libOS: A Library-OS-Inspired Runtime for Long-Running, Capability-Controlled LLM Agents
+  - 作者来自 Tsinghua University。
+  - 重点：把长跑型 LLM agent 抽象成 AgentProcess，用 capability 和 runtime primitive 管理权限。
+  - 亮点：不是提升 planner 准确率，而是为 agent 提供可调度、可授权、可恢复、可审计的运行时底座。
+
+- 03:25 DriftSched: Adaptive QoS-Aware Scheduling under Runtime Token Drift for Multi-Tenant GPU Inference
+  - 作者是 independent researcher，University of Colorado Colorado Springs alumni。
+  - 重点：多租户 LLM serving 中，admission-time 输出长度估计和实际输出长度经常漂移，导致队列失衡和尾延迟恶化。
+  - 亮点：用 runtime feedback 修正 token-budget bias；对 inference serving 调度有参考价值，和 speculative decoding 是正交但可叠加的方向。
+
+- 04:15 Cost-Aware Diffusion Draft Trees for Speculative Decoding
+  - 作者团队来自 Zhejiang University 和 Westlake University。
+  - Citation watch: cites PARD: Accelerating LLM Inference with Low-Cost Parallel Draft Model Adaptation。
+  - 重点：传统 diffusion draft tree 只最大化 acceptance length，会自然偏向更大 tree，缺少 budget 选择原则。
+  - 方法：CaDDTree 直接优化 token throughput，显式建模 draft 和 verification 延迟，并用 unimodal 性质做高效 budget 搜索。
+  - 亮点：把 speculative decoding 的预算选择变成运行时自适应优化问题。
+
+- 05:48 Hybrid Verified Decoding: Learning to Allocate Verification in Speculative Decoding
+  - 作者团队来自 Thoughtworks 和 Nvidia。
+  - Citation watch: cites PARD: Accelerating LLM Inference with Low-Cost Parallel Draft Model Adaptation。
+  - 重点：agentic workload 中，cache/n-gram 等 parameter-free draft source 很便宜，但 payoff 会随生成步骤变化。
+  - 方法：verification 前预测 accepted length，在 cache draft 和 model-based drafter 之间做选择。
+  - 亮点：agentic workflow 上平均 2.73x speedup，提示下一步 speculative decoding 需要 runtime draft-source selection。
+
+- 07:18 Other papers: DenoiseRL, RLVR sample difficulty, and FluxMem
+  - DenoiseRL: Bootstrapping Reasoning Models to Recover from Noisy Prefixes
+    - 来自 Fudan University 和 Shanghai Innovation Institute；关注从弱模型错误轨迹中 bootstrap 推理能力。
+  - Mechanistically Interpreting the Role of Sample Difficulty in RLVR for LLMs
+    - 来自 Beijing Jiaotong University、Ant Group、Northwestern Polytechnical University、University of Leeds、University of Southampton；关注 RLVR 中样本难度的机制解释。
+  - Rethinking Memory as Continuously Evolving Connectivity
+    - 来自 Zhejiang University、Alibaba Group、MemTensor、Tongji University；把 agent memory 建模为持续演化的连接图。
+
+- 08:12 Wrap-up
+  - 今日重点：Libra 是 agentic RL 资源管理必读；Agent libOS 提供 capability-based runtime 视角；两篇引用 PARD 的工作都指向 runtime adaptive speculative decoding。]]></description>
+      <content:encoded><![CDATA[# 0604 Daily arXiv Podcast: Agentic RL Systems, Agent Runtime, and Speculative Decoding
+
+Audio: 08:40
+
+## 内容时间戳
+
+- 00:00 Opening: 0603 daily arXiv feed
+  - 今日主线是 agentic RL 系统、LLM agent 运行时，以及两篇引用 PARD 的 speculative decoding 新论文。
+
+- 00:21 Libra: Efficient Resource Management for Agentic RL Post-Training
+  - 作者团队来自 The Chinese University of Hong Kong 和 The Hang Seng University of Hong Kong。
+  - 重点：agentic RL rollout 会产生长尾、非平稳的工具调用轨迹，静态 GPU 切分会很快失效。
+  - 方法：全局资源 planner 在 rollout/training 之间动态分配 GPU；C-MLFQ 用工具返回的因果信号做 rollout bucket 路由。
+  - 亮点：48 张 A800 上最高 3.0x 吞吐提升、2.5x reward 收敛加速，是今天最值得读的系统论文。
+
+- 02:13 Agent libOS: A Library-OS-Inspired Runtime for Long-Running, Capability-Controlled LLM Agents
+  - 作者来自 Tsinghua University。
+  - 重点：把长跑型 LLM agent 抽象成 AgentProcess，用 capability 和 runtime primitive 管理权限。
+  - 亮点：不是提升 planner 准确率，而是为 agent 提供可调度、可授权、可恢复、可审计的运行时底座。
+
+- 03:25 DriftSched: Adaptive QoS-Aware Scheduling under Runtime Token Drift for Multi-Tenant GPU Inference
+  - 作者是 independent researcher，University of Colorado Colorado Springs alumni。
+  - 重点：多租户 LLM serving 中，admission-time 输出长度估计和实际输出长度经常漂移，导致队列失衡和尾延迟恶化。
+  - 亮点：用 runtime feedback 修正 token-budget bias；对 inference serving 调度有参考价值，和 speculative decoding 是正交但可叠加的方向。
+
+- 04:15 Cost-Aware Diffusion Draft Trees for Speculative Decoding
+  - 作者团队来自 Zhejiang University 和 Westlake University。
+  - Citation watch: cites PARD: Accelerating LLM Inference with Low-Cost Parallel Draft Model Adaptation。
+  - 重点：传统 diffusion draft tree 只最大化 acceptance length，会自然偏向更大 tree，缺少 budget 选择原则。
+  - 方法：CaDDTree 直接优化 token throughput，显式建模 draft 和 verification 延迟，并用 unimodal 性质做高效 budget 搜索。
+  - 亮点：把 speculative decoding 的预算选择变成运行时自适应优化问题。
+
+- 05:48 Hybrid Verified Decoding: Learning to Allocate Verification in Speculative Decoding
+  - 作者团队来自 Thoughtworks 和 Nvidia。
+  - Citation watch: cites PARD: Accelerating LLM Inference with Low-Cost Parallel Draft Model Adaptation。
+  - 重点：agentic workload 中，cache/n-gram 等 parameter-free draft source 很便宜，但 payoff 会随生成步骤变化。
+  - 方法：verification 前预测 accepted length，在 cache draft 和 model-based drafter 之间做选择。
+  - 亮点：agentic workflow 上平均 2.73x speedup，提示下一步 speculative decoding 需要 runtime draft-source selection。
+
+- 07:18 Other papers: DenoiseRL, RLVR sample difficulty, and FluxMem
+  - DenoiseRL: Bootstrapping Reasoning Models to Recover from Noisy Prefixes
+    - 来自 Fudan University 和 Shanghai Innovation Institute；关注从弱模型错误轨迹中 bootstrap 推理能力。
+  - Mechanistically Interpreting the Role of Sample Difficulty in RLVR for LLMs
+    - 来自 Beijing Jiaotong University、Ant Group、Northwestern Polytechnical University、University of Leeds、University of Southampton；关注 RLVR 中样本难度的机制解释。
+  - Rethinking Memory as Continuously Evolving Connectivity
+    - 来自 Zhejiang University、Alibaba Group、MemTensor、Tongji University；把 agent memory 建模为持续演化的连接图。
+
+- 08:12 Wrap-up
+  - 今日重点：Libra 是 agentic RL 资源管理必读；Agent libOS 提供 capability-based runtime 视角；两篇引用 PARD 的工作都指向 runtime adaptive speculative decoding。]]></content:encoded>
+      <pubDate>Thu, 04 Jun 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">huajun-daily-arxiv-2026-06-04</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0604-daily-arxiv.mp3" length="8321324" type="audio/mpeg" />
+      <itunes:duration>08:40</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+  </channel>
+</rss>
