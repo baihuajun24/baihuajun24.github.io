@@ -4,21 +4,21 @@
   xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
   xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Huajun Daily arXiv Podcast</title>
+    <title>MLSYS Feed</title>
     <link>https://baihuajun24.github.io/podcast/</link>
     <atom:link href="https://baihuajun24.github.io/podcast/feed.xml" rel="self" type="application/rss+xml" />
-    <description><![CDATA[Daily short audio notes on arXiv papers, LLM systems, agents, and inference research.]]></description>
+    <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
-    <copyright>Copyright 2026 Huajun Bai</copyright>
+    <copyright>Copyright 2026 小白超 AI算</copyright>
     <lastBuildDate>Thu, 04 Jun 2026 12:55:55 GMT</lastBuildDate>
     <image>
-      <url>https://baihuajun24.github.io/podcast/assets/cover.jpg</url>
-      <title>Huajun Daily arXiv Podcast</title>
+      <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
+      <title>MLSYS Feed</title>
       <link>https://baihuajun24.github.io/podcast/</link>
     </image>
-    <itunes:author>Huajun Bai</itunes:author>
-    <itunes:summary><![CDATA[Daily short audio notes on arXiv papers, LLM systems, agents, and inference research.]]></itunes:summary>
-    <itunes:image href="https://baihuajun24.github.io/podcast/assets/cover.jpg" />
+    <itunes:author>小白超 AI算</itunes:author>
+    <itunes:summary><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></itunes:summary>
+    <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
     <item>
