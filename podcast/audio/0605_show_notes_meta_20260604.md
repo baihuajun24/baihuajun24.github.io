@@ -34,5 +34,5 @@ Audio: 09:48
 ## 制作元信息
 - 论文召回：原始 JSONL 记录 276 篇；新论文 276 篇；带入 backlog 10 篇。
 - 筛选链路：新候选 246 篇；backlog 候选 10 篇；粗排 256 篇；LLM 精评 20 篇；本期播客选讲 5 篇。
-- LLM：friday / aws.claude-opus-4.7；input 5420 tokens，output 3569 tokens，总计 8989 tokens
-- TTS：Volcengine / seed-tts-2.0；Jeff voice `zh_male_m191_uranus_bigtts`，Ada voice `zh_female_vv_uranus_bigtts`；34 turns，输入 4405 字符，计费文本 4405 words
+- LLM：aws.claude-opus-4.7；input 5420 tokens，output 3569 tokens，总计 8989 tokens。
+- TTS：seed-tts-2.0；Jeff voice `zh_male_m191_uranus_bigtts`，Ada voice `zh_female_vv_uranus_bigtts`；34 turns，输入 4405 字符，计费文本 4405 words。
