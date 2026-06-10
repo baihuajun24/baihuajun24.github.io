@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Tue, 09 Jun 2026 10:11:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 10 Jun 2026 23:40:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,78 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0611 MLSYS 论文简报：解码期 KV 预算、Agentic RL Rollout 分配与测试期自进化</title>
+      <description><![CDATA[# 0611 MLSYS 论文简报：解码期 KV 预算、Agentic RL Rollout 分配与测试期自进化
+Audio: 09:17
+## 内容时间戳
+- 00:00 Opening: 0611 MLSYS 论文简报
+  - 基于 2026-06-10 晚间完成的 arXiv 论文召回与筛选；音频不朗读链接。
+- 00:29 ReasonAlloc: Hierarchical Decoding-Time KV Cache Budget Allocation for Reasoning Models
+  - 机构：清华大学; 香港城市大学
+  - 夯到拉评价：夯（Jeff champion）
+  - 亮点：对，我挑的这篇 System Champion 论文绝对是当前的及时雨，标题是 ReasonAlloc: Hierarchical Decoding-Time KV Cache Budget Allocation for Reasoning Models。来自清华大学和香港城市大学。
+  - Link: https://arxiv.org/abs/2606.11164
+
+- 03:15 TRACE: A Unified Rollout Budget Allocation Framework for Efficient Agentic Reinforcement Learning
+  - 机构：清华大学; 腾讯
+  - 夯到拉评价：夯（Ada champion）
+  - 亮点：我挑的这篇是 TRACE: A Unified Rollout Budget Allocation Framework for Efficient Agentic Reinforcement Learning。由清华大学和腾讯联合发表。
+  - Link: https://arxiv.org/abs/2606.11119
+
+- 06:00 EEVEE: Towards Test-time Prompt Learning in the Real World for Self-Improving Agents
+  - 机构：上海交通大学; 普林斯顿大学
+  - 夯到拉评价：顶级（Ada champion）
+  - 亮点：标题是 EEVEE: Towards Test-time Prompt Learning in the Real World for Self-Improving Agents。由上海交通大学和普林斯顿大学合作，作者里包括了我们熟知的 Mengdi Wang 教授。
+  - Link: https://arxiv.org/abs/2606.11182
+
+- 08:47 Wrap-up
+  - 总结本期重点论文和后续阅读优先级。
+
+## 制作元信息
+- 论文召回：原始 JSONL 记录 225 篇；新论文 225 篇；带入 backlog 10 篇。
+- 筛选链路：新候选 168 篇；backlog 候选 10 篇；粗排 178 篇；LLM 精评 20 篇；本期播客主讲 3 篇；快速提及 2 篇。
+- LLM：gemini-3.5-flash；input 5169 tokens，output 1860 tokens，总计 7029 tokens。
+- TTS：seed-tts-2.0；Jeff voice `zh_male_m191_uranus_bigtts`，Ada voice `zh_female_yingyujiaoxue_uranus_bigtts`；34 turns，输入 3195 字符，计费文本 3195 words。
+]]></description>
+      <content:encoded><![CDATA[# 0611 MLSYS 论文简报：解码期 KV 预算、Agentic RL Rollout 分配与测试期自进化
+Audio: 09:17
+## 内容时间戳
+- 00:00 Opening: 0611 MLSYS 论文简报
+  - 基于 2026-06-10 晚间完成的 arXiv 论文召回与筛选；音频不朗读链接。
+- 00:29 ReasonAlloc: Hierarchical Decoding-Time KV Cache Budget Allocation for Reasoning Models
+  - 机构：清华大学; 香港城市大学
+  - 夯到拉评价：夯（Jeff champion）
+  - 亮点：对，我挑的这篇 System Champion 论文绝对是当前的及时雨，标题是 ReasonAlloc: Hierarchical Decoding-Time KV Cache Budget Allocation for Reasoning Models。来自清华大学和香港城市大学。
+  - Link: https://arxiv.org/abs/2606.11164
+
+- 03:15 TRACE: A Unified Rollout Budget Allocation Framework for Efficient Agentic Reinforcement Learning
+  - 机构：清华大学; 腾讯
+  - 夯到拉评价：夯（Ada champion）
+  - 亮点：我挑的这篇是 TRACE: A Unified Rollout Budget Allocation Framework for Efficient Agentic Reinforcement Learning。由清华大学和腾讯联合发表。
+  - Link: https://arxiv.org/abs/2606.11119
+
+- 06:00 EEVEE: Towards Test-time Prompt Learning in the Real World for Self-Improving Agents
+  - 机构：上海交通大学; 普林斯顿大学
+  - 夯到拉评价：顶级（Ada champion）
+  - 亮点：标题是 EEVEE: Towards Test-time Prompt Learning in the Real World for Self-Improving Agents。由上海交通大学和普林斯顿大学合作，作者里包括了我们熟知的 Mengdi Wang 教授。
+  - Link: https://arxiv.org/abs/2606.11182
+
+- 08:47 Wrap-up
+  - 总结本期重点论文和后续阅读优先级。
+
+## 制作元信息
+- 论文召回：原始 JSONL 记录 225 篇；新论文 225 篇；带入 backlog 10 篇。
+- 筛选链路：新候选 168 篇；backlog 候选 10 篇；粗排 178 篇；LLM 精评 20 篇；本期播客主讲 3 篇；快速提及 2 篇。
+- LLM：gemini-3.5-flash；input 5169 tokens，output 1860 tokens，总计 7029 tokens。
+- TTS：seed-tts-2.0；Jeff voice `zh_male_m191_uranus_bigtts`，Ada voice `zh_female_yingyujiaoxue_uranus_bigtts`；34 turns，输入 3195 字符，计费文本 3195 words。
+]]></content:encoded>
+      <pubDate>Thu, 11 Jun 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-06-11</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0611-daily-arxiv.mp3" length="8915756" type="audio/mpeg" />
+      <itunes:duration>09:17</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0610 MLSYS 论文简报：LLM Agent 服务仿真、开放世界自进化与 RLVR 奖励瓶颈</title>
       <description><![CDATA[# 0610 MLSYS 论文简报：LLM Agent 服务仿真、开放世界自进化与 RLVR 奖励瓶颈
