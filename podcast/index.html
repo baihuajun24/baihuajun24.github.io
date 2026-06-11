@@ -1,26 +1,353 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MLSYS Feed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 40px auto; max-width: 760px; padding: 0 20px; line-height: 1.6; color: #202124; }
-    a { color: #0b79d0; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
-    code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MLSYS Feed | Huajun Bai</title>
+    <meta name="description" content="MLSYS Feed — AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由">
+    <link rel="alternate" type="application/rss+xml" title="MLSYS Feed" href="feed.xml">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .show-header {
+            display: flex;
+            gap: 2.5rem;
+            align-items: flex-start;
+            padding-top: 1rem;
+        }
+
+        .show-header img {
+            width: 220px;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+        }
+
+        .show-header h1 {
+            font-size: 2.5rem;
+        }
+
+        .show-meta {
+            color: var(--light-text);
+            margin: 0.75rem 0 1.25rem;
+        }
+
+        .episode {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.3s;
+        }
+
+        .episode:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .episode-date {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        .episode h3 {
+            font-size: 1.2rem;
+            margin: 0.25rem 0 1rem;
+        }
+
+        .episode audio {
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .episode details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .show-notes {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            padding: 0.75rem 0.25rem 0;
+        }
+
+        .show-notes h2 {
+            font-size: 1.05rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .show-notes ul {
+            padding-left: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .show-notes li {
+            margin-bottom: 0.3rem;
+        }
+
+        .show-notes a {
+            color: var(--primary-color);
+            word-break: break-all;
+        }
+
+        .show-notes code {
+            background: #f6f8fa;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        #episodes-status {
+            color: var(--light-text);
+        }
+
+        #episode-toc {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2.5rem;
+        }
+
+        #episode-toc li {
+            display: flex;
+            gap: 1.25rem;
+            align-items: baseline;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        #episode-toc .toc-date {
+            min-width: 95px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        #episode-toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        #episode-toc a:hover {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .show-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <h1>MLSYS Feed</h1>
-  <div class="card">
-    <img src="logo.jpg" alt="MLSYS Feed cover" style="width: 180px; height: 180px; border-radius: 8px; object-fit: cover;">
-    <p>AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由</p>
-    <p><strong>主播:</strong> 小白超 AI算</p>
-    <p><strong>Feed:</strong> <a href="feed.xml">https://baihuajun24.github.io/podcast/feed.xml</a></p>
-    <p><strong>Latest episode:</strong> 0612 MLSYS 论文简报：MTP 加速 RL 训练、Agentic RL 过程级信用分配与扩散投机解码</p>
-    <p>本期主讲三篇：Breaking Entropy Bounds（用 MTP + 拒绝采样加速 RL 训练 rollout，通义千问）、APPO（agentic RL 的过程级细粒度信用分配）、Teaching Diffusion to Speculate Left-to-Right（扩散草稿模型的左到右投机对齐）。</p>
-    <audio controls src="audio/0612-daily-arxiv.mp3"></audio>
-  </div>
+    <header>
+        <nav>
+            <a href="../index.html" class="logo">Huajun Bai 白华君</a>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="#episodes">Episodes</a></li>
+                <li><a href="feed.xml" style="color: var(--primary-color); font-weight: 700;">RSS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="show-header fade-in" style="border-top: none;">
+            <img src="xiaoyuzhou_cover.png" alt="MLSYS Feed — 扫码在小宇宙订阅">
+            <div>
+                <h1>MLSYS Feed</h1>
+                <p class="subtitle">AI Native 信息类播客</p>
+                <p class="show-meta">arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由<br><strong>主播：</strong>小白超 AI算</p>
+                <div class="social-links">
+                    <a href="feed.xml" class="social-link"><span>📡 RSS 订阅</span></a>
+                    <a href="../index.html" class="social-link"><span>🏠 个人主页</span></a>
+                </div>
+            </div>
+        </section>
+
+        <section id="episodes">
+            <h2>Episodes 节目列表</h2>
+            <p id="episodes-status">Loading episodes from <a href="feed.xml">feed.xml</a>…</p>
+            <noscript>
+                <p>This page needs JavaScript to list episodes. You can subscribe directly via the
+                    <a href="feed.xml">RSS feed</a>.</p>
+            </noscript>
+            <ol id="episode-toc" reversed></ol>
+            <div id="episode-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Huajun Bai · MLSYS Feed</p>
+    </footer>
+
+    <script src="episodes.js"></script>
+    <script>
+        const ITUNES_NS = 'http://www.itunes.com/dtds/podcast-1.0.dtd';
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function renderInline(s) {
+            return s
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/(https?:\/\/[^\s<）)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+        }
+
+        // Renders the show-notes markdown subset: #/## headings and 2-space-nested "- " lists.
+        function renderMarkdown(md) {
+            const out = [];
+            let listDepth = 0;
+            let liOpen = false; // an <li> at the current depth is awaiting </li>
+
+            function closeLists(toDepth) {
+                while (listDepth > toDepth) {
+                    if (liOpen) out.push('</li>');
+                    out.push('</ul>');
+                    listDepth--;
+                    liOpen = listDepth > 0;
+                }
+            }
+
+            for (const rawLine of md.split('\n')) {
+                const line = escapeHtml(rawLine.replace(/\s+$/, ''));
+                const listMatch = line.match(/^(\s*)- (.*)$/);
+                if (listMatch) {
+                    const depth = Math.floor(listMatch[1].length / 2) + 1;
+                    closeLists(Math.min(depth, listDepth));
+                    while (listDepth < depth) {
+                        out.push('<ul>');
+                        listDepth++;
+                        liOpen = false;
+                    }
+                    if (liOpen) out.push('</li>');
+                    out.push('<li>' + renderInline(listMatch[2]));
+                    liOpen = true;
+                } else if (line.startsWith('## ')) {
+                    closeLists(0);
+                    out.push('<h2>' + renderInline(line.slice(3)) + '</h2>');
+                } else if (line.startsWith('# ')) {
+                    closeLists(0); // top-level title is shown as the card heading already
+                } else if (line.trim()) {
+                    closeLists(0);
+                    out.push('<p>' + renderInline(line) + '</p>');
+                }
+            }
+            closeLists(0);
+            return out.join('\n');
+        }
+
+        function formatDate(pubDate) {
+            const d = new Date(pubDate);
+            if (isNaN(d)) return pubDate;
+            return d.toLocaleDateString('zh-CN', {
+                year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Shanghai'
+            });
+        }
+
+        // Prefer the live feed; fall back to the episodes.js snapshot when fetch is
+        // unavailable (browsers block fetch of feed.xml on file:// pages).
+        async function getFeedText() {
+            try {
+                const res = await fetch('feed.xml');
+                if (res.ok) return await res.text();
+                throw new Error('HTTP ' + res.status);
+            } catch (err) {
+                console.warn('Falling back to episodes.js snapshot:', err);
+                return window.MLSYS_FEED_XML;
+            }
+        }
+
+        // Only one full episode card is shown at a time (newest by default);
+        // clicking a title in the list swaps that episode into the card slot.
+        function renderEpisode(episodes, index) {
+            const ep = episodes[index];
+            const list = document.getElementById('episode-list');
+            list.innerHTML = '';
+
+            const card = document.createElement('article');
+            card.className = 'episode';
+            card.id = ep.anchor;
+            card.innerHTML =
+                '<div class="episode-date"></div>' +
+                '<h3></h3>' +
+                '<audio controls preload="none"></audio>' +
+                '<details open>' +
+                '<summary>Show Notes 节目笔记</summary>' +
+                '<div class="show-notes"></div>' +
+                '</details>';
+            card.querySelector('.episode-date').textContent =
+                ep.date + (ep.duration ? ' · ' + ep.duration : '');
+            card.querySelector('h3').textContent = ep.title;
+            card.querySelector('audio').src = ep.audioUrl;
+            card.querySelector('.show-notes').innerHTML = renderMarkdown(ep.notes);
+            list.appendChild(card);
+
+            document.querySelectorAll('#episode-toc a').forEach((a, i) =>
+                a.style.color = i === index ? 'var(--primary-color)' : '');
+        }
+
+        async function loadEpisodes() {
+            const status = document.getElementById('episodes-status');
+            try {
+                const text = await getFeedText();
+                if (!text) throw new Error('feed unavailable');
+                const xml = new DOMParser().parseFromString(text, 'text/xml');
+                const items = [...xml.querySelectorAll('item')];
+                if (!items.length) throw new Error('no items in feed');
+                status.remove();
+
+                const episodes = items.map((item, i) => {
+                    const get = tag => item.querySelector(tag)?.textContent ?? '';
+                    return {
+                        title: get('title'),
+                        notes: get('description'),
+                        date: formatDate(get('pubDate')),
+                        audioUrl: item.querySelector('enclosure')?.getAttribute('url') ?? '',
+                        duration: item.getElementsByTagNameNS(ITUNES_NS, 'duration')[0]?.textContent ?? '',
+                        anchor: get('guid') || 'episode-' + i,
+                    };
+                });
+
+                const toc = document.getElementById('episode-toc');
+                episodes.forEach((ep, i) => {
+                    const tocEntry = document.createElement('li');
+                    const tocDate = document.createElement('span');
+                    tocDate.className = 'toc-date';
+                    tocDate.textContent = ep.date;
+                    const tocLink = document.createElement('a');
+                    tocLink.href = '#' + ep.anchor;
+                    tocLink.textContent = ep.title;
+                    tocLink.addEventListener('click', () => renderEpisode(episodes, i));
+                    tocEntry.append(tocDate, tocLink);
+                    toc.appendChild(tocEntry);
+                });
+
+                // Honor a shared #guid link; otherwise show the newest episode.
+                const fromHash = episodes.findIndex(ep => '#' + ep.anchor === location.hash);
+                renderEpisode(episodes, fromHash >= 0 ? fromHash : 0);
+            } catch (err) {
+                console.error('Failed to load episodes:', err);
+                status.innerHTML = '节目列表加载失败，请访问 <a href="https://baihuajun24.github.io/podcast/">' +
+                    'baihuajun24.github.io/podcast/</a>，或直接订阅 <a href="feed.xml">RSS feed</a>。';
+            }
+        }
+
+        loadEpisodes();
+    </script>
 </body>
+
 </html>

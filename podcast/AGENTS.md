@@ -23,7 +23,12 @@ When given new audio and notes:
 1. Add the MP3 under `podcast/audio/`.
 2. Add or preserve the source show-notes markdown under `podcast/audio/` or another clear podcast-local path.
 3. Insert a new topmost `<item>` in `podcast/feed.xml`.
-4. Update `lastBuildDate` and the landing page latest-episode pointer in `podcast/index.html`.
+4. Update `lastBuildDate` in `podcast/feed.xml`. The landing page `podcast/index.html` renders the episode list from `feed.xml` client-side, so it needs no per-episode edits — but regenerate its offline snapshot `podcast/episodes.js`:
+
+   ```bash
+   node -e "const fs=require('fs');fs.writeFileSync('podcast/episodes.js','// Auto-generated snapshot of feed.xml so the page renders without fetch (e.g. file://).\n// Regenerate after each publish — see podcast/AGENTS.md.\nwindow.MLSYS_FEED_XML='+JSON.stringify(fs.readFileSync('podcast/feed.xml','utf8'))+';\n')"
+   ```
+
 5. Validate the XML.
 6. Commit and push the update to GitHub Pages.
 7. Verify the public feed and MP3 URLs after Pages cache/deployment catches up.
@@ -84,7 +89,7 @@ Before committing:
 ```bash
 xmllint --noout podcast/feed.xml
 git diff --stat
-git diff -- podcast/feed.xml podcast/index.html
+git diff -- podcast/feed.xml
 ```
 
 After pushing:
@@ -120,7 +125,7 @@ cd /Users/huajun/Documents/baihuajun24.github.io
 Commit focused publishing changes:
 
 ```bash
-git add podcast/feed.xml podcast/index.html podcast/audio/...mp3 podcast/audio/...md
+git add podcast/feed.xml podcast/episodes.js podcast/audio/...mp3 podcast/audio/...md
 git commit -m "Add 0606 MLSYS feed episode"
 git push origin main
 ```
