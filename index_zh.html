@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>白华君 | 清华大学</title>
-    <meta name="description" content="白华君是清华大学计算机系博士生，研究方向为大语言模型推理系统与人工智能系统。">
+    <title>白华君 — 大模型推理系统 / 投机解码 | 清华大学</title>
+    <meta name="description" content="白华君是清华大学计算机系博士生，致力于构建大语言模型的高效推理系统——投机解码、高效推理与 LLM 服务。">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,11 +22,12 @@
 <body>
     <header>
         <nav>
-            <a href="#" class="logo">Huajun Bai 白华君</a>
+            <a href="#about" class="logo">Huajun Bai 白华君</a>
             <ul class="nav-links">
                 <li><a href="#about">关于我</a></li>
+                <li><a href="#news">最新动态</a></li>
                 <li><a href="#publications">论文发表</a></li>
-                <li><a href="#experience">个人经历</a></li>
+                <li><a href="#experience">工作经历</a></li>
                 <li><a href="#education">教育背景</a></li>
                 <li><a href="#service">学术服务</a></li>
                 <li><a href="#contact">联系方式</a></li>
@@ -41,33 +42,37 @@
             <div class="hero-content">
                 <h1>白华君</h1>
                 <p class="subtitle">清华大学博士生</p>
+                <p class="tagline">高效大模型推理系统 · 投机解码</p>
                 <div class="bio">
-                    <p>我是清华大学计算机科学与技术系的博士生，导师为<strong>舒继武教授</strong>。我是<a href="https://storage.cs.tsinghua.edu.cn/"
-                            target="_blank" style="color: var(--primary-color);">存储研究组 (Storage Research Group)</a>的成员。
-                    </p>
+                    <p>我是清华大学计算机科学与技术系的博士生，导师为<strong>舒继武教授</strong>，所在课题组为<a
+                            href="https://storage.cs.tsinghua.edu.cn/" target="_blank" rel="noopener">存储研究组 (Storage
+                            Research Group)</a>。</p>
                     <br>
-                    <p>我的研究兴趣在于 <strong>Tokenomics</strong>，即系统 (Systems) 与人工智能 (AI) 的交叉领域。目前，我专注于构建大语言模型 (LLM)
-                        的高效推理系统，特别是投机采样 (Speculative Decoding)。</p>
+                    <p>我致力于构建<strong>大语言模型 (LLM) 的高效推理系统</strong>——让大模型的服务更快、更省。近期我主要研究<strong>投机解码 (Speculative
+                            Decoding)</strong> 与<strong>高效推理 (Efficient Reasoning)</strong>。我把这种系统与机器学习的结合称为
+                        <em>Tokenomics</em>：让大模型计算的每一个 token 都物尽其用。</p>
                     <br>
-                    <p>我同时主持 <a href="podcast/index.html"
-                            style="color: var(--primary-color); font-weight: 600;">MLSYS Feed</a>——一档播报每日 MLSYS 论文的
+                    <p>我同时主持 <a href="podcast/index.html"><strong>MLSYS&nbsp;Feed</strong></a>——一档每日播报 MLSYS 论文的
                         <strong>AI Native 播客</strong>，也是我的迷你<strong>生成式推荐 (GenRec)</strong>
                         研究项目：智能体流水线端到端完成论文检索、推荐与音频生成。</p>
                 </div>
+                <ul class="keywords" aria-label="研究兴趣">
+                    <li>大模型推理与服务</li>
+                    <li>投机解码</li>
+                    <li>高效推理</li>
+                    <li>强化学习 Rollout 加速</li>
+                    <li>端侧 / 边缘大模型</li>
+                    <li>机器学习系统</li>
+                </ul>
                 <div class="social-links">
                     <a href="https://scholar.google.com/citations?user=bn5nR50AAAAJ" class="social-link"
-                        target="_blank">
-                        <span>🎓 Google Scholar</span>
-                    </a>
-                    <a href="https://www.linkedin.com/in/huajun-bai-041274a2/" class="social-link" target="_blank">
-                        <span>💼 LinkedIn</span>
-                    </a>
-                    <a href="https://storage.cs.tsinghua.edu.cn/~bhj/" class="social-link" target="_blank">
-                        <span>🔬 实验室主页</span>
-                    </a>
-                    <a href="podcast/index.html" class="social-link">
-                        <span>🎙️ AI Native 播客</span>
-                    </a>
+                        target="_blank" rel="noopener"><span>🎓 Google Scholar</span></a>
+                    <a href="https://www.linkedin.com/in/huajun-bai-041274a2/" class="social-link" target="_blank"
+                        rel="noopener"><span>💼 LinkedIn</span></a>
+                    <a href="https://storage.cs.tsinghua.edu.cn/~bhj/" class="social-link" target="_blank"
+                        rel="noopener"><span>🔬 实验室主页</span></a>
+                    <a href="podcast/index.html" class="social-link"><span>🎙️ MLSYS Feed</span></a>
+                    <a href="mailto:bhj24@mails.tsinghua.edu.cn" class="social-link"><span>✉️ 邮箱</span></a>
                 </div>
             </div>
             <div class="hero-image">
@@ -75,77 +80,148 @@
             </div>
         </section>
 
+        <section id="news">
+            <h2>最新动态</h2>
+            <div class="news-item">
+                <div class="news-date">2026.05</div>
+                <div><strong>SpecExit</strong> 被 <strong>ICML 2026</strong> 接收。</div>
+            </div>
+            <div class="news-item">
+                <div class="news-date">2026.01</div>
+                <div><strong>PARD</strong> 被 <strong>ICLR 2026</strong> 接收。</div>
+            </div>
+            <div class="news-item">
+                <div class="news-date">2025.09</div>
+                <div>面向 AI PC 的层次化 N-Gram 投机解码工作被 <strong>MobiCom 2025 EdgeFM Workshop</strong> 接收。</div>
+            </div>
+            <div class="news-item">
+                <div class="news-date">2025.06</div>
+                <div>加入<strong>腾讯</strong>（AI Infra——推理加速）开始研究实习。</div>
+            </div>
+            <div class="news-item">
+                <div class="news-date">2024.09</div>
+                <div>在<strong>清华大学</strong>开始博士研究，导师为舒继武教授。</div>
+            </div>
+        </section>
+
         <section id="publications">
-            <h2>会议论文与媒体报告</h2>
+            <h2>论文发表</h2>
 
             <div class="publication-item">
-                <span class="pub-title">Specexit: Accelerating large reasoning model via speculative exit</span>
-                <span class="pub-venue">ICML 2026 <span class="pub-tag">腾讯实习成果</span>
-                    <a href="https://arxiv.org/abs/2509.24248" target="_blank"
-                        style="color: var(--primary-color); font-weight: 600;">[论文]</a>
+                <span class="pub-title">SpecExit: Accelerating Large Reasoning Model via Speculative Exit</span>
+                <span class="pub-authors">Rubing Yang<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Song Liu,
+                    <em>et al.</em></span>
+                <span class="pub-venue">
+                    <span class="pub-role pub-role-lead">共同一作</span>
+                    ICML 2026 <span class="pub-tag">腾讯</span>
+                    <a href="https://arxiv.org/abs/2509.24248" target="_blank" rel="noopener">[论文]</a>
                     <a href="https://zhuanlan.zhihu.com/p/1965057876948129045" target="_blank"
-                        style="color: var(--primary-color); font-weight: 600;">[媒体报告]</a>
+                        rel="noopener">[媒体报告]</a>
+                </span>
+            </div>
+
+            <div class="publication-item">
+                <span class="pub-title">PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model
+                    Adaptation</span>
+                <span class="pub-authors">Zihao An<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Ziqiong Liu,
+                    Dong Li, Emad Barsoum</span>
+                <span class="pub-venue">
+                    <span class="pub-role pub-role-lead">共同一作</span>
+                    ICLR 2026 <span class="pub-tag">AMD</span>
+                    <a href="https://arxiv.org/abs/2504.18583" target="_blank" rel="noopener">[论文]</a>
+                    <a href="https://github.com/AMD-AGI/PARD" target="_blank" rel="noopener">[代码]</a>
+                    <a href="https://www.amd.com/en/developer/resources/technical-articles/accelerating-generative-llms-interface-with-parallel-draft-model-pard.html"
+                        target="_blank" rel="noopener">[媒体报告]</a>
                 </span>
             </div>
 
             <div class="publication-item">
                 <span class="pub-title">WiP: Efficient Speculative Decoding for AI PCs via Hierarchical N-Gram
                     Retrieval</span>
-                <span class="pub-venue">MobiCom 2025 (Workshop) <a href="https://dl.acm.org/doi/10.1145/3737902.3768352"
-                        target="_blank" style="color: var(--primary-color); font-weight: 600;">[论文]</a></span>
-            </div>
-
-            <div class="publication-item">
-                <span class="pub-title">PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model
-                    Adaptation</span>
-                <span class="pub-venue">ICLR 2026 <span class="pub-tag">AMD 实习成果</span>
-                    <a href="https://arxiv.org/abs/2504.18583" target="_blank"
-                        style="color: var(--primary-color); font-weight: 600;">[论文]</a>
-                    <a href="https://www.amd.com/en/developer/resources/technical-articles/accelerating-generative-llms-interface-with-parallel-draft-model-pard.html"
-                        target="_blank" style="color: var(--primary-color); font-weight: 600;">[媒体报告]</a>
+                <span class="pub-authors"><strong>Huajun Bai</strong>, Zihao An, <em>et al.</em></span>
+                <span class="pub-venue">
+                    <span class="pub-role pub-role-lead">第一作者</span>
+                    MobiCom 2025 Workshop (EdgeFM) <span class="pub-tag">AMD</span>
+                    <a href="https://dl.acm.org/doi/10.1145/3737902.3768352" target="_blank" rel="noopener">[论文]</a>
                 </span>
             </div>
 
             <div class="publication-item">
-                <span class="pub-title">Face: Evaluating natural language generation with fourier analysis of
-                    cross-entropy</span>
-                <span class="pub-venue">NeurIPS 2023 <a href="https://arxiv.org/abs/2305.10307" target="_blank"
-                        style="color: var(--primary-color); font-weight: 600;">[论文]</a></span>
+                <span class="pub-title">FACE: Evaluating Natural Language Generation with Fourier Analysis of
+                    Cross-Entropy</span>
+                <span class="pub-authors">Zuhao Yang, Yingfang Yuan, Yang Xu, Shuo Zhan, <strong>Huajun Bai</strong>,
+                    Kefan Chen</span>
+                <span class="pub-venue">
+                    <span class="pub-role">共同作者</span>
+                    NeurIPS 2023
+                    <a href="https://arxiv.org/abs/2305.10307" target="_blank" rel="noopener">[论文]</a>
+                </span>
             </div>
 
             <div class="publication-item">
-                <span class="pub-title">Expressive user embedding from churn and recommendation multi-task
-                    learning</span>
-                <span class="pub-venue">WWW 2023 (Poster) <a href="https://dl.acm.org/doi/10.1145/3543873.3587306"
-                        target="_blank" style="color: var(--primary-color); font-weight: 600;">[论文]</a></span>
+                <span class="pub-title">Expressive User Embedding from Churn and Recommendation Multi-Task
+                    Learning</span>
+                <span class="pub-authors"><strong>Huajun Bai</strong>, David C. Liu, Thomas Hirtz, Alexandre
+                    Boulenger</span>
+                <span class="pub-venue">
+                    <span class="pub-role pub-role-lead">第一作者</span>
+                    WWW 2023 (Poster)
+                    <a href="https://dl.acm.org/doi/10.1145/3543873.3587306" target="_blank" rel="noopener">[论文]</a>
+                </span>
             </div>
 
             <div class="publication-item">
-                <span class="pub-title">A corpus for reasoning about natural language grounded in photographs</span>
-                <span class="pub-venue">ACL 2019 <a href="https://aclanthology.org/P19-1644/" target="_blank"
-                        style="color: var(--primary-color); font-weight: 600;">[论文]</a></span>
+                <span class="pub-title">A Corpus for Reasoning about Natural Language Grounded in Photographs</span>
+                <span class="pub-authors">Alane Suhr, Stephanie Zhou, Ally Zhang, Iris Zhang, <strong>Huajun Bai</strong>,
+                    Yoav Artzi</span>
+                <span class="pub-venue">
+                    <span class="pub-role">共同作者</span>
+                    ACL 2019
+                    <a href="https://aclanthology.org/P19-1644/" target="_blank" rel="noopener">[论文]</a>
+                </span>
             </div>
+
+            <p class="pub-legend"><sup>*</sup> 共同贡献</p>
         </section>
 
         <section id="experience">
-            <h2>个人经历</h2>
-            <!-- 这些经历有一条共同的主线：从新闻信息流推荐，到企业信息流，再到我现在以 MLSYS Feed 探索的 AI 原生信息分发。 -->
+            <h2>工作经历</h2>
+
             <div class="news-item">
-                <div class="news-date">2022 - 2024</div>
+                <div class="news-date">2025.06 – 至今</div>
                 <div>
-                    <strong>创始人 & 前向部署工程师 (FDE)</strong><br>
-                    <em>早期创业项目 (企业信息流)</em>
-                    <p style="font-size: 0.9rem; color: var(--light-text); margin-top: 0.25rem;">
-                        以前向部署工程师的方式服务企业信息流场景：构建基于大语言模型的自动化流水线，实现大规模新闻的聚合、分析与摘要，并与客户团队一线协作落地。</p>
+                    <strong>研究实习生</strong> · 腾讯 — AI Infra（推理加速）
+                    <span class="item-loc">北京</span>
+                    <p class="item-desc">研发 <strong>SpecExit</strong>：让大型推理模型提前结束思维链的投机解码系统，实现最高
+                        <strong>2.5× 端到端加速</strong>且准确率无损（ICML 2026），并用投机解码将强化学习 rollout 生成最高加速
+                        <strong>2.3×</strong>（verl + SGLang）。</p>
                 </div>
             </div>
+
             <div class="news-item">
-                <div class="news-date">2018 - 2022</div>
+                <div class="news-date">2024.05 – 2025.06</div>
                 <div>
-                    <strong>机器学习工程师</strong><br>
-                    <em>新闻信息流推荐系统</em>
-                    <p style="font-size: 0.9rem; color: var(--light-text); margin-top: 0.25rem;">
-                        负责大规模新闻信息流 (News Feed) 系统：推荐算法及用户嵌入模型的研发、迭代与性能优化。</p>
+                    <strong>研究实习生</strong> · AMD — 大模型推理
+                    <span class="item-loc">北京</span>
+                    <p class="item-desc">设计 <strong>PARD</strong>：单个低成本草稿模型适配整个目标家族的并行草稿投机解码方法，在 LLaMA3.1-8B
+                        上实现最高 <strong>3.67× 加速（264.88 tok/s）</strong>（ICLR 2026），并研发端侧系统 <strong>NG+</strong>，在 AMD
+                        Ryzen™ AI MAX+ 395 上达到 <strong>1.62×</strong>（MobiCom 2025 Workshop）。</p>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div class="news-date">2022 – 2024</div>
+                <div>
+                    <strong>创始人 &amp; 前向部署工程师 (FDE)</strong> · 早期创业项目（企业信息流）
+                    <span class="item-loc">北京</span>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div class="news-date">2018 – 2022</div>
+                <div>
+                    <strong>机器学习工程师</strong> · 新闻信息流推荐系统
+                    <span class="item-loc">北京</span>
                 </div>
             </div>
         </section>
@@ -155,22 +231,22 @@
             <div class="news-item">
                 <div class="news-date">2024 - 至今</div>
                 <div>
-                    <strong>清华大学</strong><br>
-                    计算机科学与技术系, 博士生
+                    <strong>清华大学</strong> <span class="item-loc">北京</span><br>
+                    计算机科学与技术系，博士研究生 — 导师：舒继武教授
                 </div>
             </div>
             <div class="news-item">
                 <div class="news-date">2017 - 2018</div>
                 <div>
-                    <strong>康奈尔大学纽约校区 (Cornell Tech)</strong><br>
+                    <strong>康奈尔大学纽约校区 (Cornell Tech)</strong> <span class="item-loc">美国纽约</span><br>
                     计算机科学硕士 (M.Eng.)
                 </div>
             </div>
             <div class="news-item">
                 <div class="news-date">2013 - 2017</div>
                 <div>
-                    <strong>康奈尔大学 (Cornell University)</strong><br>
-                    计算机科学学士 (B.S.)
+                    <strong>康奈尔大学 (Cornell University)</strong> <span class="item-loc">美国伊萨卡</span><br>
+                    数学与计算机科学学士 (B.A.)
                 </div>
             </div>
         </section>
@@ -179,45 +255,19 @@
             <h2>学术服务</h2>
             <div class="news-item">
                 <div class="news-date">2026</div>
-                <div>
-                    <strong>NeurIPS 2026</strong><br>
-                    审稿人
-                </div>
-            </div>
-            <div class="news-item">
-                <div class="news-date">2026</div>
-                <div>
-                    <strong>COLM 2026</strong><br>
-                    审稿人
-                </div>
-            </div>
-            <div class="news-item">
-                <div class="news-date">2026</div>
-                <div>
-                    <strong>ICML 2026</strong><br>
-                    GOLD 审稿人，6篇
-                </div>
+                <div>审稿人 — <strong>NeurIPS 2026</strong>、<strong>COLM 2026</strong>；
+                    <strong>ICML 2026</strong>（Gold 审稿人，6 篇）</div>
             </div>
             <div class="news-item">
                 <div class="news-date">2025</div>
-                <div>
-                    <strong>NeurIPS 2025</strong><br>
-                    审稿人，3篇
-                </div>
-            </div>
-            <div class="news-item">
-                <div class="news-date">2025</div>
-                <div>
-                    <strong>EMNLP 2025</strong><br>
-                    审稿人，3篇
-                </div>
+                <div>审稿人 — <strong>NeurIPS 2025</strong>（3 篇）、<strong>EMNLP 2025</strong>（3 篇）</div>
             </div>
         </section>
 
         <section id="contact">
             <h2>联系方式</h2>
             <p><strong>邮箱:</strong> bhj24 [at] mails.tsinghua.edu.cn</p>
-            <p><strong>地址:</strong> 北京市清华大学自强科技楼F5</p>
+            <p><strong>办公室:</strong> 北京市清华大学自强科技楼 F5</p>
         </section>
     </main>
 

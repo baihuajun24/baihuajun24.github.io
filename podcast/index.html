@@ -12,40 +12,102 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .show-header {
+        /* Hero */
+        .show-hero {
+            border-top: none;
             display: flex;
-            gap: 2.5rem;
-            align-items: flex-start;
-            padding-top: 1rem;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #f6eef8 0%, #fdf7fb 55%, #ffffff 100%);
+            border: 1px solid #efe3f3;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 1rem;
         }
 
-        .show-header img {
-            width: 220px;
-            height: auto;
-            border-radius: 16px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        .show-hero .cover {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 18px;
+            box-shadow: 0 14px 32px rgba(102, 8, 116, 0.22);
             flex-shrink: 0;
         }
 
-        .show-header h1 {
-            font-size: 2.5rem;
+        .show-info {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .show-info h1 {
+            font-size: 2.6rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .show-info .subtitle {
+            margin-bottom: 0.5rem;
         }
 
         .show-meta {
             color: var(--light-text);
-            margin: 0.75rem 0 1.25rem;
+            margin: 0.5rem 0 1rem;
+            font-size: 0.95rem;
+        }
+
+        .subscribe-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .qr-card {
+            flex-shrink: 0;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 14px;
+            padding: 0.6rem;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .qr-card img {
+            width: 130px;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .qr-card figcaption {
+            font-size: 0.75rem;
+            color: var(--light-text);
+            margin-top: 0.45rem;
+        }
+
+        /* Episodes */
+        #episodes>h2 {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .episode-count {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: #f6eef8;
+            border-radius: 999px;
+            padding: 2px 12px;
         }
 
         .episode {
             border: 1px solid #eee;
+            border-left: 4px solid var(--primary-color);
             border-radius: 12px;
             padding: 1.5rem 1.75rem;
             margin-bottom: 1.5rem;
-            transition: box-shadow 0.3s;
-        }
-
-        .episode:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 8px 28px rgba(102, 8, 116, 0.07);
         }
 
         .episode-date {
@@ -55,8 +117,8 @@
         }
 
         .episode h3 {
-            font-size: 1.2rem;
-            margin: 0.25rem 0 1rem;
+            font-size: 1.35rem;
+            margin: 0.3rem 0 1rem;
         }
 
         .episode audio {
@@ -78,7 +140,7 @@
             padding: 0.75rem 0.25rem 0;
         }
 
-        .show-notes h2 {
+        .show-notes h4 {
             font-size: 1.05rem;
             margin: 1rem 0 0.5rem;
         }
@@ -116,10 +178,16 @@
 
         #episode-toc li {
             display: flex;
-            gap: 1.25rem;
+            gap: 1.1rem;
             align-items: baseline;
-            padding: 0.5rem 0;
+            padding: 0.6rem 0.5rem;
+            border-radius: 8px;
             border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        #episode-toc li:hover {
+            background: #faf5fc;
         }
 
         #episode-toc .toc-date {
@@ -141,10 +209,19 @@
         }
 
         @media (max-width: 768px) {
-            .show-header {
+            .show-hero {
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
+                padding: 1.5rem;
+            }
+
+            .show-info {
+                min-width: 0;
+            }
+
+            .subscribe-row {
+                justify-content: center;
             }
         }
     </style>
@@ -163,27 +240,32 @@
     </header>
 
     <main>
-        <section class="show-header fade-in" style="border-top: none;">
-            <img src="xiaoyuzhou_cover.png" alt="MLSYS Feed — 扫码在小宇宙订阅">
-            <div>
+        <section class="show-hero fade-in">
+            <img class="cover" src="logo.jpg" alt="MLSYS Feed 封面">
+            <div class="show-info">
                 <h1>MLSYS Feed</h1>
                 <p class="subtitle">AI Native 信息类播客</p>
                 <p class="show-meta">arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由<br><strong>主播：</strong>小白超 AI算</p>
-                <div class="social-links">
+                <div class="subscribe-row">
                     <a href="feed.xml" class="social-link"><span>📡 RSS 订阅</span></a>
                     <a href="../index.html" class="social-link"><span>🏠 个人主页</span></a>
+                    <a href="../index_zh.html" class="social-link"><span>👤 关于主播</span></a>
                 </div>
             </div>
+            <figure class="qr-card">
+                <img src="xiaoyuzhou_cover.png" alt="小宇宙订阅二维码">
+                <figcaption>🎧 扫码在小宇宙收听</figcaption>
+            </figure>
         </section>
 
         <section id="episodes">
-            <h2>Episodes 节目列表</h2>
+            <h2>Episodes 节目列表 <span class="episode-count" id="episode-count" hidden></span></h2>
             <p id="episodes-status">Loading episodes from <a href="feed.xml">feed.xml</a>…</p>
             <noscript>
                 <p>This page needs JavaScript to list episodes. You can subscribe directly via the
                     <a href="feed.xml">RSS feed</a>.</p>
             </noscript>
-            <ol id="episode-toc" reversed></ol>
+            <ol id="episode-toc"></ol>
             <div id="episode-list"></div>
         </section>
     </main>
@@ -238,7 +320,7 @@
                     liOpen = true;
                 } else if (line.startsWith('## ')) {
                     closeLists(0);
-                    out.push('<h2>' + renderInline(line.slice(3)) + '</h2>');
+                    out.push('<h4>' + renderInline(line.slice(3)) + '</h4>');
                 } else if (line.startsWith('# ')) {
                     closeLists(0); // top-level title is shown as the card heading already
                 } else if (line.trim()) {
@@ -308,7 +390,6 @@
                 const xml = new DOMParser().parseFromString(text, 'text/xml');
                 const items = [...xml.querySelectorAll('item')];
                 if (!items.length) throw new Error('no items in feed');
-                status.remove();
 
                 const episodes = items.map((item, i) => {
                     const get = tag => item.querySelector(tag)?.textContent ?? '';
@@ -336,9 +417,16 @@
                     toc.appendChild(tocEntry);
                 });
 
+                const countEl = document.getElementById('episode-count');
+                if (countEl) {
+                    countEl.textContent = '共 ' + episodes.length + ' 期';
+                    countEl.hidden = false;
+                }
+
                 // Honor a shared #guid link; otherwise show the newest episode.
                 const fromHash = episodes.findIndex(ep => '#' + ep.anchor === location.hash);
                 renderEpisode(episodes, fromHash >= 0 ? fromHash : 0);
+                status.remove();
             } catch (err) {
                 console.error('Failed to load episodes:', err);
                 status.innerHTML = '节目列表加载失败，请访问 <a href="https://baihuajun24.github.io/podcast/">' +

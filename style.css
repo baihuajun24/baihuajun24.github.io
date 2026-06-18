@@ -58,7 +58,7 @@ nav {
 }
 
 .nav-links li {
-    margin-left: 2rem;
+    margin-left: 1.4rem;
 }
 
 .nav-links a {
@@ -66,7 +66,7 @@ nav {
     color: var(--text-color);
     font-weight: 500;
     transition: color 0.3s;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .nav-links a:hover {
@@ -121,10 +121,46 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
+.tagline {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.25rem;
+}
+
 .bio {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: var(--light-text);
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.bio a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.bio a:hover {
+    text-decoration: underline;
+}
+
+/* Research-interest keyword chips */
+.keywords {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+}
+
+.keywords li {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    background: #f6eef8;
+    border: 1px solid #ecdcf0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
 }
 
 .social-links {
@@ -186,15 +222,32 @@ section h2 {
 }
 
 .pub-authors {
+    display: block;
     color: var(--light-text);
     font-size: 0.95rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.4rem;
+}
+
+.pub-authors sup {
+    color: var(--primary-color);
 }
 
 .pub-venue {
+    display: block;
     font-size: 0.95rem;
     font-weight: 600;
+    color: var(--text-color);
+}
+
+.pub-venue a {
     color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.2rem;
+}
+
+.pub-venue a:hover {
+    text-decoration: underline;
 }
 
 .pub-tag {
@@ -203,7 +256,38 @@ section h2 {
     background: #f0f0f0;
     border-radius: 4px;
     font-size: 0.8rem;
+    margin: 0 0.35rem;
+    color: var(--light-text);
+}
+
+/* Author-role badge (First / Co-first / Co-author) */
+.pub-role {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    vertical-align: 1px;
     margin-right: 0.5rem;
+    background: #f0e6f2;
+    color: var(--secondary-color);
+}
+
+.pub-role-lead {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.pub-legend {
+    font-size: 0.82rem;
+    color: var(--light-text);
+    margin-top: 1.5rem;
+}
+
+.pub-legend sup {
+    color: var(--primary-color);
 }
 
 /* News */
@@ -214,9 +298,40 @@ section h2 {
 }
 
 .news-date {
-    min-width: 100px;
+    min-width: 128px;
+    flex-shrink: 0;
     font-weight: 600;
     color: var(--primary-color);
+}
+
+.news-item a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.news-item a:hover {
+    text-decoration: underline;
+}
+
+/* Location tag on experience / education rows */
+.item-loc {
+    float: right;
+    color: var(--light-text);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* One-line accomplishment under an experience entry */
+.item-desc {
+    margin-top: 0.45rem;
+    font-size: 0.9rem;
+    color: var(--light-text);
+    line-height: 1.55;
+}
+
+.item-desc strong {
+    color: var(--text-color);
 }
 
 /* Footer */
@@ -256,7 +371,13 @@ footer {
         display: none;
     }
 
-    .social-links {
+    .social-links,
+    .keywords {
         justify-content: center;
+    }
+
+    .news-item {
+        flex-direction: column;
+        gap: 0.25rem;
     }
 }
