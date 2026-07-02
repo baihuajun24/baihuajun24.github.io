@@ -209,7 +209,7 @@ main {
 .fut-tier {
     position: absolute;
     top: 10.2%;
-    right: 16.2%;
+    right: 12.5%;
     z-index: 6;
     font-family: 'Barlow Condensed', 'Arial Narrow', var(--font-main);
     font-size: 4.2cqw;
@@ -224,17 +224,34 @@ main {
     display: none;
 }
 
-/* Subject is a transparent-background cutout, so the gold finish shows through;
-   only a bottom fade is needed to melt the torso into the lower panel */
+/* Subject is a transparent-background cutout, so the gold finish shows through.
+   The frame hangs 7% past the card's left edge to shift the subject left (the
+   cutout fills the frame width exactly, so object-position has no x slack);
+   a second mask layer, the shield PNG itself, sized back to card coordinates
+   (card height = 820/540 = 151.85cqw), keeps the overhang inside the
+   silhouette, intersected with the bottom fade that melts the torso into the
+   lower panel */
 .fut-photo-frame {
     position: absolute;
-    left: 0;
+    left: -7%;
     top: 11%;
-    width: 100%;
+    width: 107%;
     height: 47.5%;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 80%, transparent 98%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 80%, transparent 98%);
+    -webkit-mask-image:
+        linear-gradient(180deg, #000 0%, #000 80%, transparent 98%),
+        url("gitfut-gold-card.png");
+    mask-image:
+        linear-gradient(180deg, #000 0%, #000 80%, transparent 98%),
+        url("gitfut-gold-card.png");
+    -webkit-mask-size: 100% 100%, 100cqw 151.85cqw;
+    mask-size: 100% 100%, 100cqw 151.85cqw;
+    -webkit-mask-position: 0 0, 7cqw -16.7cqw;
+    mask-position: 0 0, 7cqw -16.7cqw;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
     z-index: 2;
 }
 
@@ -243,7 +260,9 @@ main {
     height: 100%;
     object-fit: cover;
     object-position: 50% 0%;
-    filter: drop-shadow(0 2.6cqw 3.4cqw rgba(90, 60, 0, 0.3));
+    filter:
+        drop-shadow(0 2.6cqw 3.4cqw rgba(90, 60, 0, 0.3))
+        drop-shadow(0 0 5cqw rgba(243, 214, 121, 0.4));
     opacity: 1;
 }
 
@@ -259,7 +278,8 @@ main {
     z-index: 5;
 }
 
-.fut-school-logo {
+.fut-school-logo,
+.fut-company-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -270,11 +290,34 @@ main {
     box-shadow: inset 0 0 0 0.25cqw rgba(51, 35, 10, 0.08), 0 0.9cqw 2cqw rgba(51, 35, 10, 0.18);
 }
 
-.fut-school-logo img {
+.fut-company-logo {
+    width: 9.8cqw;
+    height: 9.8cqw;
+}
+
+.fut-school-logo img,
+.fut-company-logo img {
     width: 10.2cqw;
     height: 10.2cqw;
     object-fit: contain;
     display: block;
+}
+
+.fut-company-logo img {
+    width: 7.8cqw;
+    height: 7.8cqw;
+}
+
+/* Company chips run along the top edge, left of the GOLD badge; keep them
+   below ~7% so they clear the shield's top-corner notches */
+.fut-company-logos {
+    position: absolute;
+    right: 25.5%;
+    top: 8.8%;
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+    z-index: 5;
 }
 
 .fut-lower {
@@ -293,20 +336,16 @@ main {
     font-family: 'Barlow Condensed', 'Arial Narrow', var(--font-main);
     font-size: 10.2cqw;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.03em;
     border-bottom: 0.6cqw solid var(--fut-line);
     padding: 0 5cqw 1.2cqw;
     margin-bottom: 4cqw;
 }
 
 .fut-stats {
-    position: relative;
     list-style: none;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3.2cqw 0;
-    width: 74%;
+    display: flex;
+    justify-content: center;
     margin: 0 auto;
     padding: 0;
     font-family: 'Barlow Condensed', 'Arial Narrow', var(--font-main);
@@ -314,28 +353,20 @@ main {
     font-weight: 600;
     letter-spacing: 0.08em;
     line-height: 1.25;
-    text-align: left;
-}
-
-.fut-stats::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 3px;
-    bottom: 3px;
-    width: 0.3cqw;
-    background: var(--fut-line);
 }
 
 .fut-stats li {
     text-align: center;
     white-space: nowrap;
+    padding: 0 3.2cqw;
+}
+
+.fut-stats li + li {
+    border-left: 0.3cqw solid var(--fut-line);
 }
 
 .fut-stats li b {
     display: inline-block;
-    min-width: 2.7ch;
-    text-align: right;
     margin-right: 1.4cqw;
     font-size: 7.4cqw;
     font-weight: 700;
