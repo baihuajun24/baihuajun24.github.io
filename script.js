@@ -32,9 +32,15 @@ document.querySelectorAll('section').forEach(section => {
 // Profile photo ⇄ player-card easter egg
 const playerCard = document.getElementById('player-card');
 if (playerCard) {
+    const cardFront = playerCard.querySelector('.card-front');
+    const cardBack = playerCard.querySelector('.card-back');
     const flip = () => {
         const flipped = playerCard.classList.toggle('flipped');
         playerCard.setAttribute('aria-pressed', flipped);
+        if (cardFront && cardBack) {
+            cardFront.setAttribute('aria-hidden', flipped);
+            cardBack.setAttribute('aria-hidden', !flipped);
+        }
     };
     playerCard.addEventListener('click', flip);
     playerCard.addEventListener('keydown', e => {
@@ -43,15 +49,4 @@ if (playerCard) {
             flip();
         }
     });
-
-    // Live EP stat from the podcast feed; the hardcoded number is the fallback.
-    fetch('podcast/feed.xml')
-        .then(res => res.ok ? res.text() : Promise.reject(new Error('HTTP ' + res.status)))
-        .then(text => {
-            const items = new DOMParser().parseFromString(text, 'text/xml').querySelectorAll('item');
-            if (items.length) {
-                document.querySelectorAll('.fut-ep').forEach(el => el.textContent = items.length);
-            }
-        })
-        .catch(() => { /* keep the snapshot number */ });
 }
