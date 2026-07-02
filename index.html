@@ -7,6 +7,15 @@
     <title>Huajun Bai — LLM Inference Systems & Speculative Decoding | Tsinghua University</title>
     <meta name="description"
         content="Huajun Bai is a PhD student at Tsinghua University building efficient inference systems for large language models — speculative decoding, efficient reasoning, and LLM serving.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Huajun Bai — LLM Inference Systems & Speculative Decoding">
+    <meta property="og:description"
+        content="PhD student at Tsinghua University building efficient inference systems for LLMs — speculative decoding, efficient reasoning, LLM serving. Host of the MLSYS Feed podcast.">
+    <meta property="og:url" content="https://baihuajun24.github.io/">
+    <meta property="og:image" content="https://baihuajun24.github.io/profile.JPG">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23660874'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3E白%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,16 +52,12 @@
                         <a href="https://storage.cs.tsinghua.edu.cn/" target="_blank" rel="noopener">Storage Research
                             Group</a>.</p>
                     <br>
-                    <p>I build <strong>efficient inference systems for large language models</strong> — making LLMs
-                        faster and cheaper to serve. Recently, I have been working on <strong>speculative
-                            decoding</strong> and <strong>efficient reasoning</strong>. I think of this systems–ML
-                        interplay as <em>Tokenomics</em>: getting the most useful work out of every token an LLM
-                        computes.</p>
+                    <p>I build <strong>efficient inference systems for large language models</strong>, with a recent
+                        focus on <strong>speculative decoding</strong> and <strong>efficient reasoning</strong> —
+                        <em>Tokenomics</em>: getting the most useful work out of every token an LLM computes.</p>
                     <br>
                     <p>I also host <a href="podcast/index.html"><strong>MLSYS&nbsp;Feed</strong></a>, an
-                        <strong>AI-native podcast</strong> that briefs new MLSYS papers daily — a
-                        <strong>generative-recommendation (GenRec)</strong> side project where an agentic pipeline
-                        retrieves, ranks, and narrates fresh arXiv work end to end.</p>
+                        <strong>AI-native podcast</strong> that briefs fresh MLSYS papers daily.</p>
                 </div>
                 <ul class="keywords" aria-label="Research interests">
                     <li>LLM Inference &amp; Serving</li>
@@ -74,12 +79,19 @@
                 </div>
             </div>
             <div class="hero-image">
+                <!-- Player-card easter egg available in card.html; swap in its .card-flip block to enable -->
                 <img src="profile.JPG" alt="Huajun Bai" id="profile-img">
             </div>
         </section>
 
         <section id="news">
             <h2>News</h2>
+            <div class="news-item">
+                <div class="news-date">Jun 2026</div>
+                <div>Shared a talk on my experiences (and failures) managing <strong>AI agents for research</strong>
+                    <a href="https://mp.weixin.qq.com/s/GocUlCKGfs5Zff7AalEJYg" target="_blank"
+                        rel="noopener">[WeChat post]</a>.</div>
+            </div>
             <div class="news-item">
                 <div class="news-date">May 2026</div>
                 <div><strong>SpecExit</strong> is accepted to <strong>ICML 2026</strong>.</div>
@@ -191,10 +203,9 @@
                 <div>
                     <strong>Research Intern</strong> · Tencent — AI Infra (Inference Acceleration)
                     <span class="item-loc">Beijing</span>
-                    <p class="item-desc">Built <strong>SpecExit</strong>, a speculative-decoding system that lets large
-                        reasoning models exit their chain-of-thought early for up to <strong>2.5× end-to-end
-                            speedup</strong> with no accuracy loss (ICML 2026), and accelerated RL-rollout generation up
-                        to <strong>2.3×</strong> on verl + SGLang.</p>
+                    <p class="item-desc">Built <strong>SpecExit</strong> — reasoning models exit their
+                        chain-of-thought early for up to <strong>2.5× end-to-end speedup</strong>, no accuracy loss —
+                        and accelerated RL-rollout generation up to <strong>2.3×</strong> on verl + SGLang.</p>
                 </div>
             </div>
 
@@ -203,11 +214,9 @@
                 <div>
                     <strong>Research Intern</strong> · AMD — LLM Inference
                     <span class="item-loc">Beijing</span>
-                    <p class="item-desc">Designed <strong>PARD</strong>, a parallel-draft speculative-decoding method
-                        that adapts one low-cost draft model across a target family for up to <strong>3.67× speedup
-                            (264.88 tok/s)</strong> on LLaMA3.1-8B (ICLR 2026), and built <strong>NG+</strong>, an
-                        on-device system reaching <strong>1.62×</strong> on an AMD Ryzen™ AI MAX+ 395 (MobiCom 2025
-                        Workshop).</p>
+                    <p class="item-desc">Designed <strong>PARD</strong> — one low-cost parallel draft model serves a
+                        whole target family, up to <strong>3.67× speedup</strong> on LLaMA3.1-8B — and built
+                        <strong>NG+</strong>, on-device speculative decoding at <strong>1.62×</strong> on Ryzen™ AI.</p>
                 </div>
             </div>
 

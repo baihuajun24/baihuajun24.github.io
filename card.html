@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Card — Huajun Bai</title>
+    <meta name="robots" content="noindex">
+    <meta name="description" content="FUT-style player card for Huajun Bai — an easter egg option page.">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23660874'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3E白%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Standalone demo page for the player-card easter egg. Not linked from the
+           site; to ship it, move the .card-flip block into .hero-image on both
+           homepages (script.js already handles the flip + live EP count). */
+        body.card-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            background: radial-gradient(circle at 50% 35%, #35283f 0%, #17131f 75%);
+        }
+
+        .card-page .hero-image {
+            margin: 0;
+        }
+
+        .card-page .page-note {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 0 1.5rem;
+        }
+
+        .card-page .page-note a {
+            color: #d9b3e4;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="card-page">
+    <div class="hero-image">
+        <div class="card-flip" id="player-card" role="button" tabindex="0" aria-pressed="false"
+            aria-label="Flip the photo to reveal a player card">
+            <div class="card-face card-front">
+                <img src="profile.JPG" alt="Huajun Bai" id="profile-img">
+                <span class="flip-hint" aria-hidden="true">⚽</span>
+            </div>
+            <div class="card-face card-back" aria-hidden="true">
+                <div class="fut-card">
+                    <span class="fut-watermark">白</span>
+                    <span class="fut-photo-frame"><img class="fut-photo" src="profile.JPG" alt=""></span>
+                    <div class="fut-id">
+                        <span class="fut-rating">750+</span>
+                        <span class="fut-pos">CIT</span>
+                        <span class="fut-sub">PhD · MLSYS</span>
+                        <span class="fut-icons">🎓<br>🎙️</span>
+                    </div>
+                    <div class="fut-lower">
+                        <div class="fut-name">BAIHUAJUN24</div>
+                        <ul class="fut-stats">
+                            <li><b>6</b> PUB</li>
+                            <li><b>4</b> LEAD</li>
+                            <li><b>12</b> REV</li>
+                            <li><b class="fut-ep">13</b> EP</li>
+                            <li><b>3.7×</b> SPD</li>
+                            <li><b>2</b> INT</li>
+                        </ul>
+                        <div class="fut-foot">SPECULATIVE DECODER · TSINGHUA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="page-note">Click the photo to flip. · <a href="index.html">← back to homepage</a></p>
+    <script src="script.js"></script>
+</body>
+
+</html>

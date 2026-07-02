@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>白华君 — 大模型推理系统 / 投机解码 | 清华大学</title>
     <meta name="description" content="白华君是清华大学计算机系博士生，致力于构建大语言模型的高效推理系统——投机解码、高效推理与 LLM 服务。">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="白华君 — 大模型推理系统 / 投机解码">
+    <meta property="og:description" content="清华大学计算机系博士生，致力于构建大语言模型的高效推理系统——投机解码、高效推理与 LLM 服务。主持播客 MLSYS Feed。">
+    <meta property="og:url" content="https://baihuajun24.github.io/index_zh.html">
+    <meta property="og:image" content="https://baihuajun24.github.io/profile.JPG">
+    <meta property="og:locale" content="zh_CN">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23660874'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3E白%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,13 +57,12 @@
                             href="https://storage.cs.tsinghua.edu.cn/" target="_blank" rel="noopener">存储研究组 (Storage
                             Research Group)</a>。</p>
                     <br>
-                    <p>我致力于构建<strong>大语言模型 (LLM) 的高效推理系统</strong>——让大模型的服务更快、更省。近期我主要研究<strong>投机解码 (Speculative
-                            Decoding)</strong> 与<strong>高效推理 (Efficient Reasoning)</strong>。我把这种系统与机器学习的结合称为
+                    <p>我致力于构建<strong>大语言模型 (LLM) 的高效推理系统</strong>，近期主要研究<strong>投机解码 (Speculative
+                            Decoding)</strong> 与<strong>高效推理 (Efficient Reasoning)</strong>——
                         <em>Tokenomics</em>：让大模型计算的每一个 token 都物尽其用。</p>
                     <br>
                     <p>我同时主持 <a href="podcast/index.html"><strong>MLSYS&nbsp;Feed</strong></a>——一档每日播报 MLSYS 论文的
-                        <strong>AI Native 播客</strong>，也是我的迷你<strong>生成式推荐 (GenRec)</strong>
-                        研究项目：智能体流水线端到端完成论文检索、推荐与音频生成。</p>
+                        <strong>AI Native 播客</strong>。</p>
                 </div>
                 <ul class="keywords" aria-label="研究兴趣">
                     <li>大模型推理与服务</li>
@@ -76,12 +84,19 @@
                 </div>
             </div>
             <div class="hero-image">
+                <!-- 球员卡彩蛋见 card.html；启用时把其中的 .card-flip 结构替换到这里 -->
                 <img src="profile.JPG" alt="白华君" id="profile-img">
             </div>
         </section>
 
         <section id="news">
             <h2>最新动态</h2>
+            <div class="news-item">
+                <div class="news-date">2026.06</div>
+                <div>分享了一场关于<strong>如何管理科研 AI 智能体</strong>的演讲——我的经验与踩坑
+                    <a href="https://mp.weixin.qq.com/s/GocUlCKGfs5Zff7AalEJYg" target="_blank"
+                        rel="noopener">[微信推文]</a>。</div>
+            </div>
             <div class="news-item">
                 <div class="news-date">2026.05</div>
                 <div><strong>SpecExit</strong> 被 <strong>ICML 2026</strong> 接收。</div>
@@ -192,8 +207,8 @@
                 <div>
                     <strong>研究实习生</strong> · 腾讯 — AI Infra（推理加速）
                     <span class="item-loc">北京</span>
-                    <p class="item-desc">研发 <strong>SpecExit</strong>：让大型推理模型提前结束思维链的投机解码系统，实现最高
-                        <strong>2.5× 端到端加速</strong>且准确率无损（ICML 2026），并用投机解码将强化学习 rollout 生成最高加速
+                    <p class="item-desc">研发 <strong>SpecExit</strong>——让推理模型提前结束思维链，最高
+                        <strong>2.5× 端到端加速</strong>且准确率无损；并将强化学习 rollout 生成最高加速
                         <strong>2.3×</strong>（verl + SGLang）。</p>
                 </div>
             </div>
@@ -203,9 +218,9 @@
                 <div>
                     <strong>研究实习生</strong> · AMD — 大模型推理
                     <span class="item-loc">北京</span>
-                    <p class="item-desc">设计 <strong>PARD</strong>：单个低成本草稿模型适配整个目标家族的并行草稿投机解码方法，在 LLaMA3.1-8B
-                        上实现最高 <strong>3.67× 加速（264.88 tok/s）</strong>（ICLR 2026），并研发端侧系统 <strong>NG+</strong>，在 AMD
-                        Ryzen™ AI MAX+ 395 上达到 <strong>1.62×</strong>（MobiCom 2025 Workshop）。</p>
+                    <p class="item-desc">设计 <strong>PARD</strong>——单个低成本并行草稿模型适配整个目标家族，在 LLaMA3.1-8B
+                        上实现最高 <strong>3.67× 加速</strong>；并研发端侧投机解码系统 <strong>NG+</strong>，在
+                        Ryzen™ AI 上达到 <strong>1.62×</strong>。</p>
                 </div>
             </div>
 

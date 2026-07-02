@@ -6,12 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MLSYS Feed | Huajun Bai</title>
     <meta name="description" content="MLSYS Feed — AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="MLSYS Feed — AI Native 播客">
+    <meta property="og:description" content="每日播报 MLSYS 新论文的 AI Native 播客 · An AI-native daily briefing on fresh MLSYS papers.">
+    <meta property="og:url" content="https://baihuajun24.github.io/podcast/">
+    <meta property="og:image" content="https://baihuajun24.github.io/podcast/logo.jpg">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23660874'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3E白%3C/text%3E%3C/svg%3E">
     <link rel="alternate" type="application/rss+xml" title="MLSYS Feed" href="feed.xml">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+
         /* Hero */
         .show-hero {
             border-top: none;
@@ -51,8 +65,15 @@
 
         .show-meta {
             color: var(--light-text);
-            margin: 0.5rem 0 1rem;
+            margin: 0.5rem 0 0.4rem;
             font-size: 0.95rem;
+        }
+
+        .show-meta-en {
+            color: var(--light-text);
+            font-size: 0.88rem;
+            font-style: italic;
+            margin: 0 0 1rem;
         }
 
         .subscribe-row {
@@ -246,6 +267,8 @@
                 <h1>MLSYS Feed</h1>
                 <p class="subtitle">AI Native 信息类播客</p>
                 <p class="show-meta">arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由<br><strong>主播：</strong>小白超 AI算</p>
+                <p class="show-meta-en" lang="en">An AI-native podcast briefing fresh MLSYS papers daily — retrieved,
+                    ranked, and narrated end-to-end by an agentic pipeline. Episodes are in Chinese.</p>
                 <div class="subscribe-row">
                     <a href="feed.xml" class="social-link"><span>📡 RSS 订阅</span></a>
                     <a href="../index.html" class="social-link"><span>🏠 个人主页</span></a>

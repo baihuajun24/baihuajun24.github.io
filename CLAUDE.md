@@ -23,15 +23,17 @@ python3 -m http.server 8000   # from the repo root
 
 Do NOT judge the podcast page by opening files via `file://` — browsers block `fetch('feed.xml')` there (the page falls back to the `episodes.js` snapshot, which may be stale) and directory links resolve to folder listings instead of `index.html`.
 
-Visual check with headless Chrome:
+Visual check with headless Edge (Google Chrome is NOT installed on this machine; Edge takes the same flags):
 
 ```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu \
+"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" --headless --disable-gpu \
   --virtual-time-budget=5000 --window-size=1280,1400 \
   --screenshot=/tmp/page.png http://localhost:8000/podcast/
 ```
 
-Caveat: headless Chrome renders fonts slightly narrower than the user's real browser — layouts that "just fit" in a screenshot may wrap on a real screen. Leave generous slack in flex rows.
+Caveats:
+- Headless rendering shows fonts slightly narrower than the user's real browser — layouts that "just fit" in a screenshot may wrap on a real screen. Leave generous slack in flex rows.
+- Narrow window sizes (e.g. `--window-size=390,...`) lay out ~20% wider than the window and clip the right edge — a headless quirk, not a real mobile-layout bug (the live site shows the same artifact). Don't chase it; test mobile layouts in a real browser's device mode.
 
 ## Publishing
 

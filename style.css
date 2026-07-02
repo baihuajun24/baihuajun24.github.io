@@ -95,15 +95,239 @@ main {
 .hero-image {
     width: 280px;
     height: 420px;
+    perspective: 1200px;
+}
+
+/* Plain profile photo (homepages); the card.html easter egg replaces it with .card-flip */
+.hero-image>img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile photo ⇄ player-card easter egg: click the photo to flip it */
+.card-flip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.2, 0.85, 0.3, 1.08);
+    cursor: pointer;
+}
+
+.card-flip.flipped {
+    transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card-flip {
+        transition: none;
+    }
+}
+
+.card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-.hero-image img {
+.card-front img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+}
+
+.flip-hint {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s;
+}
+
+.card-flip:hover .flip-hint {
+    transform: rotate(20deg) scale(1.12);
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: radial-gradient(circle at 50% 28%, #35283f 0%, #1b1524 75%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fut-card {
+    position: relative;
+    width: 236px;
+    height: 384px;
+    clip-path: polygon(11% 0, 89% 0, 100% 6.5%, 100% 80%, 50% 100%, 0 80%, 0 6.5%);
+    background: linear-gradient(165deg, #eddef3 0%, #cfa6dc 32%, #a873bc 62%, #8b4fa0 100%);
+    color: #3d1147;
+    overflow: hidden;
+}
+
+.fut-watermark {
+    position: absolute;
+    top: 60px;
+    left: -10px;
+    font-size: 9rem;
+    font-weight: 800;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.16);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Portrait bleeds into the card: radial mask fades its edges into the finish */
+.fut-photo-frame {
+    position: absolute;
+    top: 18px;
+    right: -6px;
+    width: 178px;
+    height: 196px;
+    overflow: hidden;
+    -webkit-mask-image: radial-gradient(80% 72% at 58% 40%, #000 40%, transparent 72%);
+    mask-image: radial-gradient(80% 72% at 58% 40%, #000 40%, transparent 72%);
+}
+
+/* grayscale→sepia→hue-rotate = purple duotone without blend-mode stacking traps */
+.fut-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 53% 30%;
+    transform: scale(2.5);
+    transform-origin: 60% 44%;
+    filter: grayscale(1) sepia(1) hue-rotate(240deg) saturate(1.35) brightness(1.02) contrast(1.05);
+    opacity: 0.95;
+}
+
+.fut-id {
+    position: absolute;
+    top: 30px;
+    left: 16px;
+    width: 66px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    z-index: 1;
+}
+
+.fut-rating {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.fut-pos {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    border-bottom: 1px solid rgba(61, 17, 71, 0.35);
+    padding-bottom: 0.3rem;
+}
+
+.fut-sub {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.fut-icons {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Lighter bottom panel, like the reference card's silver base */
+.fut-lower {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 208px;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.2) 55%, rgba(255, 255, 255, 0.32) 100%);
+    padding-top: 0.3rem;
+    text-align: center;
+}
+
+.fut-name {
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    border-bottom: 2px solid rgba(61, 17, 71, 0.45);
+    padding: 0.05rem 0.7rem 0.2rem;
+    margin-bottom: 0.4rem;
+}
+
+.fut-stats {
+    position: relative;
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2rem 0;
+    padding: 0 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+}
+
+.fut-stats::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 3px;
+    bottom: 3px;
+    width: 1px;
+    background: rgba(61, 17, 71, 0.3);
+}
+
+.fut-stats li {
+    text-align: center;
+}
+
+.fut-stats li b {
+    display: inline-block;
+    min-width: 2.6ch;
+    text-align: right;
+    margin-right: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.fut-foot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 30px;
+    padding: 0 1.6rem;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    opacity: 0.75;
+    line-height: 1.5;
 }
 
 h1 {
