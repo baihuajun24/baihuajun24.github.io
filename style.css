@@ -228,10 +228,10 @@ main {
    only a bottom fade is needed to melt the torso into the lower panel */
 .fut-photo-frame {
     position: absolute;
-    left: 2%;
-    top: 12%;
-    width: 96%;
-    height: 42.5%;
+    left: 0;
+    top: 11%;
+    width: 100%;
+    height: 47.5%;
     overflow: hidden;
     -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 80%, transparent 98%);
     mask-image: linear-gradient(180deg, #000 0%, #000 80%, transparent 98%);
@@ -247,18 +247,15 @@ main {
     opacity: 1;
 }
 
+/* School crests stacked top-left, where FUT puts rating/position */
 .fut-school-logos {
     position: absolute;
-    left: 13%;
-    top: 39%;
+    left: 7%;
+    top: 15%;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.6cqw;
-    padding: 1.1cqw 1.35cqw;
-    border: 0.25cqw solid rgba(255, 255, 255, 0.42);
-    border-radius: 2.2cqw;
-    background: rgba(255, 243, 188, 0.3);
-    box-shadow: 0 1.6cqw 3.4cqw rgba(51, 35, 10, 0.12);
+    gap: 2cqw;
     z-index: 5;
 }
 
@@ -266,16 +263,16 @@ main {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 11.6cqw;
-    height: 11.6cqw;
+    width: 12.6cqw;
+    height: 12.6cqw;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.88);
-    box-shadow: inset 0 0 0 0.25cqw rgba(51, 35, 10, 0.08), 0 0.9cqw 2cqw rgba(51, 35, 10, 0.14);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 0 0 0.25cqw rgba(51, 35, 10, 0.08), 0 0.9cqw 2cqw rgba(51, 35, 10, 0.18);
 }
 
 .fut-school-logo img {
-    width: 9.4cqw;
-    height: 9.4cqw;
+    width: 10.2cqw;
+    height: 10.2cqw;
     object-fit: contain;
     display: block;
 }
@@ -284,9 +281,9 @@ main {
     position: absolute;
     left: 0;
     right: 0;
-    top: 54%;
+    top: 58.5%;
     bottom: 0;
-    padding-top: 0;
+    padding-top: 1.6cqw;
     text-align: center;
     z-index: 4;
 }
@@ -294,13 +291,13 @@ main {
 .fut-name {
     display: inline-block;
     font-family: 'Barlow Condensed', 'Arial Narrow', var(--font-main);
-    font-size: 8.4cqw;
+    font-size: 10.2cqw;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     border-bottom: 0.6cqw solid var(--fut-line);
-    padding: 0 4.8cqw 1.6cqw;
-    margin-bottom: 5.4cqw;
+    padding: 0 5cqw 1.2cqw;
+    margin-bottom: 4cqw;
 }
 
 .fut-stats {
@@ -313,10 +310,10 @@ main {
     margin: 0 auto;
     padding: 0;
     font-family: 'Barlow Condensed', 'Arial Narrow', var(--font-main);
-    font-size: 4.1cqw;
+    font-size: 5cqw;
     font-weight: 600;
     letter-spacing: 0.08em;
-    line-height: 1.28;
+    line-height: 1.25;
     text-align: left;
 }
 
@@ -339,8 +336,8 @@ main {
     display: inline-block;
     min-width: 2.7ch;
     text-align: right;
-    margin-right: 1.2cqw;
-    font-size: 6cqw;
+    margin-right: 1.4cqw;
+    font-size: 7.4cqw;
     font-weight: 700;
     letter-spacing: 0.01em;
 }
