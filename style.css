@@ -190,7 +190,7 @@ main {
     aspect-ratio: 540 / 820;
     color: var(--fut-ink, #242a2d);
     container-type: inline-size;
-    background: url("gitfut-gold-card.png") center / 100% 100% no-repeat;
+    background: url("assets/card/gitfut-gold-card.png") center / 100% 100% no-repeat;
     filter:
         drop-shadow(0 7cqw 10cqw rgba(0, 0, 0, 0.34))
         drop-shadow(0 0 4.8cqw rgba(225, 185, 80, 0.34));
@@ -240,10 +240,10 @@ main {
     overflow: hidden;
     -webkit-mask-image:
         linear-gradient(180deg, #000 0%, #000 80%, transparent 98%),
-        url("gitfut-gold-card.png");
+        url("assets/card/gitfut-gold-card.png");
     mask-image:
         linear-gradient(180deg, #000 0%, #000 80%, transparent 98%),
-        url("gitfut-gold-card.png");
+        url("assets/card/gitfut-gold-card.png");
     -webkit-mask-size: 100% 100%, 100cqw 151.85cqw;
     mask-size: 100% 100%, 100cqw 151.85cqw;
     -webkit-mask-position: 0 0, 7cqw -16.7cqw;
