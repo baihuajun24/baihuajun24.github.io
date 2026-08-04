@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Mon, 03 Aug 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 04 Aug 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,103 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机</title>
+      <description><![CDATA[# 0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机
+Audio: 08:57
+
+> 长上下文和长交互要付三笔账：解码要一步步走、KV cache 占显存、agent 历史越堆越长。今天三篇各治一笔，且都评顶级。
+
+## 内容时间戳
+
+- 00:00 开场 · 长上下文的三笔账
+- 00:37 Bole（南京大学 / 蚂蚁集团）· 混合注意力的树投机
+- 03:38 RestoreKV（釜山大学）· KV 驱逐后用 LoRA 复原
+- 06:11 Context Compaction Theory（波士顿大学 / 哈佛等）· 上下文压缩的理论极限
+- 07:52 快速一览 · LaCache / RING
+- 08:42 收尾
+
+## 本期主讲
+
+**1. Bole: Efficient Tree Speculation for Hybrid-Attention Language Models**（南京大学 / 蚂蚁集团，arXiv:2608.01651）
+混合注意力（全注意力交替线性注意力）解码时是显存带宽瓶颈，投机解码本该救，但现有树投机都绕全注意力 KV 设计——碰到线性注意力那条递归就得逐分支算、还给每个树节点存整份状态，验证延迟与显存都爆炸。Bole 证明门控线性注意力在候选树上有精确闭式解（祖先作用矩阵严格下三角且深度有限幂零 → 逆等于有限次多项式），于是从一个进树前的不变状态一次性并行算完，分支更新压成 token 尺度小因子、只在采样后重建接受的那条、全程不拍快照。做进 SGLang（六千多行）：线性注意力树验证快 3.4–7.7×、瞬时状态显存降 82–99×、端到端解码吞吐最高是自回归的 4.72×（比最强树投机基线 2.03×）、首/每 token 延迟最多砍 67.6%/49.9%、几何平均 2.74×。诚实点：仅在 Qwen3.5 系列 + 自带 MTP 草稿头上验证，闭式解专为门控 delta 递归推导。评级：顶级。
+
+**2. RestoreKV: Recovering Full-Cache Behavior Under Aggressive Query-Agnostic KV Eviction**（釜山大学 / 淑明女大，arXiv:2608.01247）
+查询无关 KV 驱逐（先压一次、任意查询复用）预算紧了就断崖，而以往方法都在抠"该留哪些原始 KV 对"，压出来永远是原始缓存的子集。RestoreKV 换思路：拿出总预算里一小块放 8 个可学习复原 token，在驱逐前用一个 LoRA 适配器让它们一次性看完整缓存、把丢失信息压成一小份补回来，总预算不超；LoRA 只在复原那一下开、解码全程关。极紧预算下 RULER 强基线 38.2→73.2，等预算 60 设定改善 59 个，开销 <0.5%、显存 +0.4%，4B 两小时只调 0.4% 参数。诚实点：名字说大了（离满 cache 九十多仍差）、增益集中在极紧预算、需按模型与驱逐法各训一个适配器，但消融把增益来源与位置编码混淆都控住了。评级：顶级。
+
+**3. Context Compaction Theory**（波士顿大学 / 哈佛 / 纽约城市学院等，arXiv:2608.01326）
+agent 跑久了历史会爆，现在都靠上下文压缩续命，但没人说得清极限。这篇把它建成两方游戏，证明"生成式压缩"等价于通讯复杂度里的单向通讯——几十年的下界直接搬过来告诉你某类任务的压缩预算下限；还证明生成式可以严格比"挑选式"更省。案例研究拿一个前沿模型的上下文压缩接口做集合成员查询，发现压缩后基本是瞎猜水平，说明现实离理论还很远。不刷榜，但第一次把一个人人在用、却没人架理论的东西架上了理论，并打了个诚实的样。评级：顶级。
+
+## 快速一览
+
+- LaCache: Robust Semantic Caching for LLM Serving（arXiv:2608.01718）· 给 LLM 服务做语义缓存，额外核对投机解码前几个 token 是否命中来防缓存碰撞攻击。
+- RING: Retrieval-Internalized Generation（arXiv:2608.01630）· 把大规模外部知识灌进一组记忆专家，学一个在内部记忆上做路由与检索的策略，把外部检索内化。
+
+## 论文与链接
+
+- Bole — arXiv:2608.01651
+- RestoreKV — arXiv:2608.01247
+- Context Compaction Theory — arXiv:2608.01326
+- LaCache — arXiv:2608.01718
+- RING — arXiv:2608.01630
+
+## 制作元信息
+
+- 检索：watermark 补至 08-04 批次（当日批次约 11:38 BJT 落地后开跑），663 检索 / 506 候选 → Claude-as-judge（8 子代理，按更新后的兴趣：模型路由 / 大小模型协同 / 高效推理）判 60 → 7 入选。
+- 三篇主讲全文 PDF 出卡定级（评级冻结），均顶级。
+- 音频：本地合成（mlx-audio Qwen3-TTS-12Hz-1.7B-CustomVoice），双主持 Jeff（uncle_fu）/ Ada（serena），1.0x。
+- 口径：各篇加速/分数为论文自报、口径不同不可横比；Bole 仅 Qwen3.5 + 自带草稿头验证；RestoreKV 增益集中于极紧预算；Context Compaction 接口测试为论文自身案例。
+]]></description>
+      <pubDate>Tue, 04 Aug 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-08-04</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0804-daily-arxiv.mp3" length="8598957" type="audio/mpeg" />
+      <itunes:duration>08:57</itunes:duration>
+      <content:encoded><![CDATA[# 0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机
+Audio: 08:57
+
+> 长上下文和长交互要付三笔账：解码要一步步走、KV cache 占显存、agent 历史越堆越长。今天三篇各治一笔，且都评顶级。
+
+## 内容时间戳
+
+- 00:00 开场 · 长上下文的三笔账
+- 00:37 Bole（南京大学 / 蚂蚁集团）· 混合注意力的树投机
+- 03:38 RestoreKV（釜山大学）· KV 驱逐后用 LoRA 复原
+- 06:11 Context Compaction Theory（波士顿大学 / 哈佛等）· 上下文压缩的理论极限
+- 07:52 快速一览 · LaCache / RING
+- 08:42 收尾
+
+## 本期主讲
+
+**1. Bole: Efficient Tree Speculation for Hybrid-Attention Language Models**（南京大学 / 蚂蚁集团，arXiv:2608.01651）
+混合注意力（全注意力交替线性注意力）解码时是显存带宽瓶颈，投机解码本该救，但现有树投机都绕全注意力 KV 设计——碰到线性注意力那条递归就得逐分支算、还给每个树节点存整份状态，验证延迟与显存都爆炸。Bole 证明门控线性注意力在候选树上有精确闭式解（祖先作用矩阵严格下三角且深度有限幂零 → 逆等于有限次多项式），于是从一个进树前的不变状态一次性并行算完，分支更新压成 token 尺度小因子、只在采样后重建接受的那条、全程不拍快照。做进 SGLang（六千多行）：线性注意力树验证快 3.4–7.7×、瞬时状态显存降 82–99×、端到端解码吞吐最高是自回归的 4.72×（比最强树投机基线 2.03×）、首/每 token 延迟最多砍 67.6%/49.9%、几何平均 2.74×。诚实点：仅在 Qwen3.5 系列 + 自带 MTP 草稿头上验证，闭式解专为门控 delta 递归推导。评级：顶级。
+
+**2. RestoreKV: Recovering Full-Cache Behavior Under Aggressive Query-Agnostic KV Eviction**（釜山大学 / 淑明女大，arXiv:2608.01247）
+查询无关 KV 驱逐（先压一次、任意查询复用）预算紧了就断崖，而以往方法都在抠"该留哪些原始 KV 对"，压出来永远是原始缓存的子集。RestoreKV 换思路：拿出总预算里一小块放 8 个可学习复原 token，在驱逐前用一个 LoRA 适配器让它们一次性看完整缓存、把丢失信息压成一小份补回来，总预算不超；LoRA 只在复原那一下开、解码全程关。极紧预算下 RULER 强基线 38.2→73.2，等预算 60 设定改善 59 个，开销 <0.5%、显存 +0.4%，4B 两小时只调 0.4% 参数。诚实点：名字说大了（离满 cache 九十多仍差）、增益集中在极紧预算、需按模型与驱逐法各训一个适配器，但消融把增益来源与位置编码混淆都控住了。评级：顶级。
+
+**3. Context Compaction Theory**（波士顿大学 / 哈佛 / 纽约城市学院等，arXiv:2608.01326）
+agent 跑久了历史会爆，现在都靠上下文压缩续命，但没人说得清极限。这篇把它建成两方游戏，证明"生成式压缩"等价于通讯复杂度里的单向通讯——几十年的下界直接搬过来告诉你某类任务的压缩预算下限；还证明生成式可以严格比"挑选式"更省。案例研究拿一个前沿模型的上下文压缩接口做集合成员查询，发现压缩后基本是瞎猜水平，说明现实离理论还很远。不刷榜，但第一次把一个人人在用、却没人架理论的东西架上了理论，并打了个诚实的样。评级：顶级。
+
+## 快速一览
+
+- LaCache: Robust Semantic Caching for LLM Serving（arXiv:2608.01718）· 给 LLM 服务做语义缓存，额外核对投机解码前几个 token 是否命中来防缓存碰撞攻击。
+- RING: Retrieval-Internalized Generation（arXiv:2608.01630）· 把大规模外部知识灌进一组记忆专家，学一个在内部记忆上做路由与检索的策略，把外部检索内化。
+
+## 论文与链接
+
+- Bole — arXiv:2608.01651
+- RestoreKV — arXiv:2608.01247
+- Context Compaction Theory — arXiv:2608.01326
+- LaCache — arXiv:2608.01718
+- RING — arXiv:2608.01630
+
+## 制作元信息
+
+- 检索：watermark 补至 08-04 批次（当日批次约 11:38 BJT 落地后开跑），663 检索 / 506 候选 → Claude-as-judge（8 子代理，按更新后的兴趣：模型路由 / 大小模型协同 / 高效推理）判 60 → 7 入选。
+- 三篇主讲全文 PDF 出卡定级（评级冻结），均顶级。
+- 音频：本地合成（mlx-audio Qwen3-TTS-12Hz-1.7B-CustomVoice），双主持 Jeff（uncle_fu）/ Ada（serena），1.0x。
+- 口径：各篇加速/分数为论文自报、口径不同不可横比；Bole 仅 Qwen3.5 + 自带草稿头验证；RestoreKV 增益集中于极紧预算；Context Compaction 接口测试为论文自身案例。
+]]></content:encoded>
+    </item>
     <item>
       <title>0803 MLSYS 论文简报：给推理省钱的三个层面</title>
       <description><![CDATA[# 0803 MLSYS 论文简报：给推理省钱的三个层面
