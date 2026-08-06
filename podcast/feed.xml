@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Tue, 04 Aug 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 06 Aug 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,90 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0806 MLSYS 论文简报：AsymSpec 让云边投机解码不再堵上行</title>
+      <description><![CDATA[# 0806 MLSYS 论文简报：AsymSpec 让云边投机解码不再堵上行
+Audio: 10:58
+
+> 今天三篇有同一条线索：把决定权交给最便宜的那一层，贵的大模型只负责剩下的。评级 夯 / 夯 / 人上人。
+
+## 内容时间戳
+
+- 00:00 开场 · 把决定权交给最便宜的那一层
+- 00:38 AsymSpec（天津大学）· 非对称链路上的云边投机解码（夯）
+- 04:22 ReCo（港科大 / 西安交大 / 北大）· 一个过程奖励同时管 KV 与停机（夯）
+- 07:37 Wix 技能门 · 进上下文之前的确定性拦截（人上人）
+- 09:59 快速一览 · 证据忠实度 / agent 失效检测
+- 10:44 收尾
+
+## 本期主讲
+
+**1. AsymSpec: Efficient Cloud-Edge Speculative Decoding over Asymmetric Networks**（天津大学，arXiv:2608.04974）
+云边投机解码里草稿模型在边缘、目标模型在云上，每个投机块都要过一次上行云端才能验证。老办法上传整个词表大小的草稿分布、回复却只有几十字节，上下行消息量差 16032–18992×（解析测算）；实测通信+等待占端到端时延 85% 以上。洞察是接受与纠正的频率、信息量完全不同，正好映射非对称链路两个方向：上行只传 token 加草稿概率，完整分布留在边缘当可查状态；纠正走更宽的下行。保真度不看 top-K 覆盖率，而是给残差分布本身推全变差上界当证书，不够就单调扩 K，再不够退回拒绝采样精确恢复；调度上每请求最多一个未决块，等待时切到另一个已确定前缀的请求。实测 18 个操作点全部最高吞吐，比最强基线 2.82–28.03×、几何平均 7.96×；强网到弱网基线掉 71.4–78.6%，它反涨 1.9%。诚实点：网络为 tc/NetEm 模拟、原型是两个 Python 服务、边缘用消费级显卡而非真网关；28.03× 上限由弱网下基线崩塌驱动，几何平均才是可比数；纠正是全变差预算内而非逐比特精确。评级：夯。
+
+**2. Fewer Tokens, Smaller Cache: Reward-Coordinated Efficient Reasoning**（港科大 / 西安交大 / 北大，arXiv:2608.04771）
+先测出一笔被忽略的账单——固定压缩率下模型反而吐更多 token：25% 压缩率时某主流方法把 MATH-500 平均生成长度 3268.7 拉到 4538.1（+38.8%），另一个 8B 模型 4409.8 拉到 7891.7（+79.0%），最高 79.8% 的题目比满 cache 还长。以往压缩对整条轨迹一视同仁、且只按"删了什么"评价。ReCo 用一个 30M 过程奖励给每步打分，一个信号同时决定该步 KV 保留、惩罚反思 token、触发提前停机（对照：从高奖励步删 70% 比同预算随机步删，准确率高 3.5–6 分）。实测 token 少 37%/65%/46%，单卡 H20 墙钟 2.08/2.35/2.18×，峰值显存 28.78 降到 17.92 GB（−37.7%），自身开销合计不到 4%。诚实点：准确率不是持平而是"掉得最少"，比满 CoT 低 1.9–2.7 分（AIME25 33.3% 对 40.0%）；只在 7–8B 蒸馏模型、数学与理科问答、单卡上验证。评级：夯。
+
+**3. Don't Offer What Can't Be Done: Deterministic Executability Gating for LLM Skill Selection at Scale**（Wix，arXiv:2608.01050）
+技能库一大，语义相关就不够用了——技能可能话题对得上却在当前账号状态下不可执行。招法：每个技能内部本就写着退出条件，把这些谓词反过来，在技能描述进入模型上下文之前就地评估；门与技能共用谓词，拦截在构造上可靠。生产实测（一个月、一个十技能域族）：756641 条消息、267612 个会话；门砍掉 59.4% 的技能-消息对与 2.288 亿 token，语义加门合计把技能描述上下文砍掉 90.5%，平均每条消息从 10 个技能里拿掉 5.94 个。反事实回放：全暴露十技能时模型在 1000 个会话里有 78 个（7.8%）选中生产已拦截的技能。诚实点：单公司单技能族一个月窗口、无跨产品泛化证据；7.8% 来自专门构造的高风险队列、只回放一次、无方差；脚注自报投稿 KDD 2027 应用赛道且在审——在审不等于录用。评级：人上人。
+
+## 快速一览
+
+- Does Accuracy Equal Evidence? Reasoning Faithfulness under KV Cache Compression（arXiv:2608.01631）· KV 压缩可保住最终答案正确率，却毁掉推理链的证据支撑。
+- Real-Time Detection and Repair of LLM Agent Failures（arXiv:2608.02464）· 用微秒级遥测监控替掉每步一次的 LLM 裁判，再闭环成回滚与修复。
+
+## 论文与链接
+
+- AsymSpec — arXiv:2608.04974
+- Fewer Tokens, Smaller Cache (ReCo) — arXiv:2608.04771
+- Don't Offer What Can't Be Done — arXiv:2608.01050
+- Does Accuracy Equal Evidence? — arXiv:2608.01631
+- Real-Time Detection and Repair of LLM Agent Failures — arXiv:2608.02464
+]]></description>
+      <content:encoded><![CDATA[# 0806 MLSYS 论文简报：AsymSpec 让云边投机解码不再堵上行
+Audio: 10:58
+
+> 今天三篇有同一条线索：把决定权交给最便宜的那一层，贵的大模型只负责剩下的。评级 夯 / 夯 / 人上人。
+
+## 内容时间戳
+
+- 00:00 开场 · 把决定权交给最便宜的那一层
+- 00:38 AsymSpec（天津大学）· 非对称链路上的云边投机解码（夯）
+- 04:22 ReCo（港科大 / 西安交大 / 北大）· 一个过程奖励同时管 KV 与停机（夯）
+- 07:37 Wix 技能门 · 进上下文之前的确定性拦截（人上人）
+- 09:59 快速一览 · 证据忠实度 / agent 失效检测
+- 10:44 收尾
+
+## 本期主讲
+
+**1. AsymSpec: Efficient Cloud-Edge Speculative Decoding over Asymmetric Networks**（天津大学，arXiv:2608.04974）
+云边投机解码里草稿模型在边缘、目标模型在云上，每个投机块都要过一次上行云端才能验证。老办法上传整个词表大小的草稿分布、回复却只有几十字节，上下行消息量差 16032–18992×（解析测算）；实测通信+等待占端到端时延 85% 以上。洞察是接受与纠正的频率、信息量完全不同，正好映射非对称链路两个方向：上行只传 token 加草稿概率，完整分布留在边缘当可查状态；纠正走更宽的下行。保真度不看 top-K 覆盖率，而是给残差分布本身推全变差上界当证书，不够就单调扩 K，再不够退回拒绝采样精确恢复；调度上每请求最多一个未决块，等待时切到另一个已确定前缀的请求。实测 18 个操作点全部最高吞吐，比最强基线 2.82–28.03×、几何平均 7.96×；强网到弱网基线掉 71.4–78.6%，它反涨 1.9%。诚实点：网络为 tc/NetEm 模拟、原型是两个 Python 服务、边缘用消费级显卡而非真网关；28.03× 上限由弱网下基线崩塌驱动，几何平均才是可比数；纠正是全变差预算内而非逐比特精确。评级：夯。
+
+**2. Fewer Tokens, Smaller Cache: Reward-Coordinated Efficient Reasoning**（港科大 / 西安交大 / 北大，arXiv:2608.04771）
+先测出一笔被忽略的账单——固定压缩率下模型反而吐更多 token：25% 压缩率时某主流方法把 MATH-500 平均生成长度 3268.7 拉到 4538.1（+38.8%），另一个 8B 模型 4409.8 拉到 7891.7（+79.0%），最高 79.8% 的题目比满 cache 还长。以往压缩对整条轨迹一视同仁、且只按"删了什么"评价。ReCo 用一个 30M 过程奖励给每步打分，一个信号同时决定该步 KV 保留、惩罚反思 token、触发提前停机（对照：从高奖励步删 70% 比同预算随机步删，准确率高 3.5–6 分）。实测 token 少 37%/65%/46%，单卡 H20 墙钟 2.08/2.35/2.18×，峰值显存 28.78 降到 17.92 GB（−37.7%），自身开销合计不到 4%。诚实点：准确率不是持平而是"掉得最少"，比满 CoT 低 1.9–2.7 分（AIME25 33.3% 对 40.0%）；只在 7–8B 蒸馏模型、数学与理科问答、单卡上验证。评级：夯。
+
+**3. Don't Offer What Can't Be Done: Deterministic Executability Gating for LLM Skill Selection at Scale**（Wix，arXiv:2608.01050）
+技能库一大，语义相关就不够用了——技能可能话题对得上却在当前账号状态下不可执行。招法：每个技能内部本就写着退出条件，把这些谓词反过来，在技能描述进入模型上下文之前就地评估；门与技能共用谓词，拦截在构造上可靠。生产实测（一个月、一个十技能域族）：756641 条消息、267612 个会话；门砍掉 59.4% 的技能-消息对与 2.288 亿 token，语义加门合计把技能描述上下文砍掉 90.5%，平均每条消息从 10 个技能里拿掉 5.94 个。反事实回放：全暴露十技能时模型在 1000 个会话里有 78 个（7.8%）选中生产已拦截的技能。诚实点：单公司单技能族一个月窗口、无跨产品泛化证据；7.8% 来自专门构造的高风险队列、只回放一次、无方差；脚注自报投稿 KDD 2027 应用赛道且在审——在审不等于录用。评级：人上人。
+
+## 快速一览
+
+- Does Accuracy Equal Evidence? Reasoning Faithfulness under KV Cache Compression（arXiv:2608.01631）· KV 压缩可保住最终答案正确率，却毁掉推理链的证据支撑。
+- Real-Time Detection and Repair of LLM Agent Failures（arXiv:2608.02464）· 用微秒级遥测监控替掉每步一次的 LLM 裁判，再闭环成回滚与修复。
+
+## 论文与链接
+
+- AsymSpec — arXiv:2608.04974
+- Fewer Tokens, Smaller Cache (ReCo) — arXiv:2608.04771
+- Don't Offer What Can't Be Done — arXiv:2608.01050
+- Does Accuracy Equal Evidence? — arXiv:2608.01631
+- Real-Time Detection and Repair of LLM Agent Failures — arXiv:2608.02464
+]]></content:encoded>
+      <pubDate>Thu, 06 Aug 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-08-06</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0806-daily-arxiv.mp3" length="10528557" type="audio/mpeg" />
+      <itunes:duration>10:58</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机</title>
       <description><![CDATA[# 0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机
