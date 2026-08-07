@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Thu, 06 Aug 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 07 Aug 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,88 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0807 MLSYS 论文简报：你以为的路由收益，可能只是重跑噪声</title>
+      <description><![CDATA[# 0807 MLSYS 论文简报：你以为的路由收益，可能只是重跑噪声
+Audio: 09:31
+
+> 今天换个打法：只深讲两篇，快速轮加长到四篇——今天这批真正过线的就两篇。两篇共用一句话：先量对东西，再谈优化。均评人上人。
+
+## 内容时间戳
+
+- 00:00 开场 · 今天为什么只深讲两篇
+- 00:46 SAKI（Cotality）· KV 索引该优化打分失真而不是重建 key（人上人）
+- 04:59 路由不可学（伦敦大学学院 / Holistic AI）· 收益大半是重跑噪声（人上人）
+- 08:12 快速一览 · 技能召回 / 切分推理 / 突发流量调度 / anytime-valid 评测
+- 09:18 收尾
+
+## 本期主讲
+
+**1. SAKI: Score-Aware Low-Rank Key Indexing with Random-Matrix Noise Correction for KV Retrieval**（Cotality，arXiv:2608.03228）
+长上下文解码已经变成检索问题：8B 模型百万 token 的 bf16 KV cache 约 130 GB，真实系统先用 rank-r 的 key 索引粗选、再取精确 value。现有两类做法（截断权重矩阵、或在激活分布下重建缓存张量）优化的都不是 attention 真正使用的量——attention 用的是 q 点乘 k 的打分排序，不是 key 的重建误差。把"key 侧低秩压缩造成的期望打分失真"直接求期望，得到一个双边协方差加权的低秩逼近，打分算子被 query 与 key 的真实统计量从两侧夹住。关键结论：rank-r 最优解不是投影器，而是不对称的低秩双线性映射；正交投影器只是 rank-r 映射类的严格子集，所以所有 span-based 方法（含 PCA）在原理上就表达不了它。落地只需每 head 一次校准前向 + 一次 128x128 SVD，两个因子可离线折进权重。实测（LLaMA-3.1-8B 全 1024 head，4096 上下文）top-64 召回中位数 r=32 时 0.799 对 PCA 0.748、r=64 时 0.876 对 0.833；跨四个模型无一格子输给 PCA；校准效率约 8 倍。最漂亮的是理论预测与实测的 per-head 打分 MSE 下降跨 1024 head 的 Pearson r = 0.9969。诚实点：正文两处明说尚未投稿；只有 recall 代理指标，4K 上下文、单一校准域，无端到端质量，全文无任何延迟/显存/吞吐指标。评级：人上人。
+
+**2. Routing Is Least Learnable Where It Is Most Valuable: Bounds on Representation Routing for Web Agents**（伦敦大学学院 / Holistic AI，arXiv:2608.06171）
+一个负结果。web agent 要操作网页得先"看见"页面——可访问性树（文本）、截图（像素）、或两者融合的标注图；今天这个选择建站时定一次、之后不变。7686 次评分 episode、36 个条件后，表面收益诱人：六模态 oracle 成功率 7.1–51.9%，最好单模态只有 2.2–35.6%。但两刀砍下来：其一，先给"重跑一次"定价——同一条件重跑就有 12.1–14.3% 的任务结果翻转，而真加一个不同模态只多买 +1.97 到 +7 个点，大 oracle 收益大半是六臂并集比一臂基线的虚高。其二，路由标签只在"有东西成功了"的地方存在，每 cell 六类合计仅 15–97 个标签，按每类最少十行筛，6 个 cell 里 4 个训不出分类器——agent 成功率越低标签越稀缺，于是路由最该帮忙处恰恰最没监督。唯一活下来的正收益是离线重组：保留最好模态、只把从没解出的任务丢给最便宜的臂，8 个 cell 全部省 9.5–30.6% 成本且成功率不变。论文还公开撤回了自己五条早先写死的结论。诚实点：成功率仅 2–36%，仪器分辨率与效应量相当；重跑波动带只在 2 个 cell 实测、外推到另外 6 个；作者自述该结论标记当下能力水位并预测自身会被推翻。评级：人上人。
+
+## 快速一览
+
+- Comparative Approaches to Agent Retrieval over Large Skill Libraries（arXiv:2608.06196）· 大技能库里怎么召回技能，正好接上前一期那篇 Wix 的确定性门：一个管召回、一个管拦截。
+- RAC: Reference-Aware Activation Compression（arXiv:2608.04991）· 端云切分推理的边界激活压缩编解码。
+- LLM Inference Under Bursty Workload Distribution（arXiv:2608.06135）· 把排队论调度里需预知的到达率换成在线估计；注意全程为模拟环境，正文未给出吞吐与时延数字。
+- AV-AIVAT（arXiv:2608.06362）· anytime-valid 停机让 agent 评测"证据够了就停"；标题的 74 倍来自其引用方法 2018 年对弱基线的方差削减，该文自身证明的是 54 倍方差削减仅换 1.37 倍更早停机。
+
+## 论文与链接
+
+- SAKI — arXiv:2608.03228
+- Routing Is Least Learnable Where It Is Most Valuable — arXiv:2608.06171
+- Comparative Approaches to Agent Retrieval over Large Skill Libraries — arXiv:2608.06196
+- RAC — arXiv:2608.04991
+- LLM Inference Under Bursty Workload Distribution — arXiv:2608.06135
+- AV-AIVAT — arXiv:2608.06362
+]]></description>
+      <content:encoded><![CDATA[# 0807 MLSYS 论文简报：你以为的路由收益，可能只是重跑噪声
+Audio: 09:31
+
+> 今天换个打法：只深讲两篇，快速轮加长到四篇——今天这批真正过线的就两篇。两篇共用一句话：先量对东西，再谈优化。均评人上人。
+
+## 内容时间戳
+
+- 00:00 开场 · 今天为什么只深讲两篇
+- 00:46 SAKI（Cotality）· KV 索引该优化打分失真而不是重建 key（人上人）
+- 04:59 路由不可学（伦敦大学学院 / Holistic AI）· 收益大半是重跑噪声（人上人）
+- 08:12 快速一览 · 技能召回 / 切分推理 / 突发流量调度 / anytime-valid 评测
+- 09:18 收尾
+
+## 本期主讲
+
+**1. SAKI: Score-Aware Low-Rank Key Indexing with Random-Matrix Noise Correction for KV Retrieval**（Cotality，arXiv:2608.03228）
+长上下文解码已经变成检索问题：8B 模型百万 token 的 bf16 KV cache 约 130 GB，真实系统先用 rank-r 的 key 索引粗选、再取精确 value。现有两类做法（截断权重矩阵、或在激活分布下重建缓存张量）优化的都不是 attention 真正使用的量——attention 用的是 q 点乘 k 的打分排序，不是 key 的重建误差。把"key 侧低秩压缩造成的期望打分失真"直接求期望，得到一个双边协方差加权的低秩逼近，打分算子被 query 与 key 的真实统计量从两侧夹住。关键结论：rank-r 最优解不是投影器，而是不对称的低秩双线性映射；正交投影器只是 rank-r 映射类的严格子集，所以所有 span-based 方法（含 PCA）在原理上就表达不了它。落地只需每 head 一次校准前向 + 一次 128x128 SVD，两个因子可离线折进权重。实测（LLaMA-3.1-8B 全 1024 head，4096 上下文）top-64 召回中位数 r=32 时 0.799 对 PCA 0.748、r=64 时 0.876 对 0.833；跨四个模型无一格子输给 PCA；校准效率约 8 倍。最漂亮的是理论预测与实测的 per-head 打分 MSE 下降跨 1024 head 的 Pearson r = 0.9969。诚实点：正文两处明说尚未投稿；只有 recall 代理指标，4K 上下文、单一校准域，无端到端质量，全文无任何延迟/显存/吞吐指标。评级：人上人。
+
+**2. Routing Is Least Learnable Where It Is Most Valuable: Bounds on Representation Routing for Web Agents**（伦敦大学学院 / Holistic AI，arXiv:2608.06171）
+一个负结果。web agent 要操作网页得先"看见"页面——可访问性树（文本）、截图（像素）、或两者融合的标注图；今天这个选择建站时定一次、之后不变。7686 次评分 episode、36 个条件后，表面收益诱人：六模态 oracle 成功率 7.1–51.9%，最好单模态只有 2.2–35.6%。但两刀砍下来：其一，先给"重跑一次"定价——同一条件重跑就有 12.1–14.3% 的任务结果翻转，而真加一个不同模态只多买 +1.97 到 +7 个点，大 oracle 收益大半是六臂并集比一臂基线的虚高。其二，路由标签只在"有东西成功了"的地方存在，每 cell 六类合计仅 15–97 个标签，按每类最少十行筛，6 个 cell 里 4 个训不出分类器——agent 成功率越低标签越稀缺，于是路由最该帮忙处恰恰最没监督。唯一活下来的正收益是离线重组：保留最好模态、只把从没解出的任务丢给最便宜的臂，8 个 cell 全部省 9.5–30.6% 成本且成功率不变。论文还公开撤回了自己五条早先写死的结论。诚实点：成功率仅 2–36%，仪器分辨率与效应量相当；重跑波动带只在 2 个 cell 实测、外推到另外 6 个；作者自述该结论标记当下能力水位并预测自身会被推翻。评级：人上人。
+
+## 快速一览
+
+- Comparative Approaches to Agent Retrieval over Large Skill Libraries（arXiv:2608.06196）· 大技能库里怎么召回技能，正好接上前一期那篇 Wix 的确定性门：一个管召回、一个管拦截。
+- RAC: Reference-Aware Activation Compression（arXiv:2608.04991）· 端云切分推理的边界激活压缩编解码。
+- LLM Inference Under Bursty Workload Distribution（arXiv:2608.06135）· 把排队论调度里需预知的到达率换成在线估计；注意全程为模拟环境，正文未给出吞吐与时延数字。
+- AV-AIVAT（arXiv:2608.06362）· anytime-valid 停机让 agent 评测"证据够了就停"；标题的 74 倍来自其引用方法 2018 年对弱基线的方差削减，该文自身证明的是 54 倍方差削减仅换 1.37 倍更早停机。
+
+## 论文与链接
+
+- SAKI — arXiv:2608.03228
+- Routing Is Least Learnable Where It Is Most Valuable — arXiv:2608.06171
+- Comparative Approaches to Agent Retrieval over Large Skill Libraries — arXiv:2608.06196
+- RAC — arXiv:2608.04991
+- LLM Inference Under Bursty Workload Distribution — arXiv:2608.06135
+- AV-AIVAT — arXiv:2608.06362
+]]></content:encoded>
+      <pubDate>Fri, 07 Aug 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-08-07</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0807-daily-arxiv.mp3" length="9133101" type="audio/mpeg" />
+      <itunes:duration>09:31</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0806 MLSYS 论文简报：AsymSpec 让云边投机解码不再堵上行</title>
       <description><![CDATA[# 0806 MLSYS 论文简报：AsymSpec 让云边投机解码不再堵上行
