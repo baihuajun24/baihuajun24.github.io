@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Fri, 07 Aug 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Aug 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,94 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0810 MLSYS 论文简报：别把上一步的输出当定稿</title>
+      <description><![CDATA[# 0810 MLSYS 论文简报：别把上一步的输出当定稿
+Audio: 09:33
+
+> 今天三篇干的是同一个动作：回头去改上一阶段已经定死的东西。量化把整数码当定局、记忆把老师的经验原样搬、技能库把检索到的文档直接塞进 prompt——三篇都说，那只是草稿。三篇都评人上人，而且都罕见地诚实。
+
+## 内容时间戳
+
+- 00:00 开场 · 三篇干的是同一个动作
+- 00:39 ReQuant（北大 / 港中深 / 中兴）· 量化后回头翻整数码（人上人）
+- 03:32 Agent Memory Distillation（KAIST / DeepAuto.ai）· 老师记忆按学生能力重切粒度（人上人）
+- 06:23 SkillAligner（浙江大学）· 执行前把检索到的技能重写一遍（人上人）
+- 08:28 快速一览 · 碳感知路由 / VLM 看图省 token / 自蒸馏门控
+- 09:21 收尾
+
+## 本期主讲
+
+**1. ReQuant: Fixed-Grid Discrete Refinement for Post-Training Quantization**（北京大学 / 香港中文大学深圳 / 中兴，arXiv:2608.07019）
+训练后量化流水线产出一份整数分配就停了——权重一旦映到格点，这个离散决策就当最终答案；GPTQ 的贪心逐列扫描里前面的列冻住、只让后面的列补偿。ReQuant 的观察是层重建损失按输出行可分解、行内对量化误差是凸二次，所以把一个坐标挪到相邻格点的损失变化有闭式解，从缓存梯度里 O(1) 可算，于是能做离散坐标下降。它接在任何已完成的 PTQ 输出之后，冻住位宽、scale、zero-point、格点布局、存储格式与推理 kernel，只反复翻整数码，且只接受严格降低重建误差的翻转，并有有限步终止证明——部署侧完全不变。实测弱初始化收益很猛：Llama-3 8B W4A4+QuaRot 下 RTN 十任务均值 53.33→61.94，70B 上 32.78→66.93；W2A4 下 GPTQ 35.88→41.00 且 WikiText-2 困惑度 31.98→15.06。诚实点：真正收益集中在弱初始化，对上已经很强的 GPTAQ 只有 +0.04 到 +0.81 分，低于它自己五个种子的 ±0.55 波动，与噪声分不开（论文自己报了）；离线代价是初始化器的 5–16 倍。评级：人上人。
+
+**2. Agent Memory Distillation: Empowering Small LLM Agents with Hierarchical Teacher Memory**（KAIST / DeepAuto.ai，arXiv:2608.07169）
+小模型 agent 成功率低，攒出来的记忆库全是失败轨迹，记忆系统在小模型上基本失效；而把大老师的记忆原样塞给学生也不行——老师写的是"先登录再放歌"这种高层策略，学生根本不会执行登录那一步。洞察是记忆的粒度与表示形式要和学生能力对齐，并做成了消融：子任务记忆用代码 49.40% 对纯自然语言 23.21%，工作流记忆反过来自然语言 49.40% 优于代码 44.05%。老师只从成功轨迹抽三层记忆（工作流 / 子任务 / 函数），前两层开场注入，函数记忆只在工具报错时按函数名反应式检索，全程 k=1、不训练任何参数。Qwen3-4B 在 AppWorld 上 14.88%→49.40%，逼近老师 GPT-5-mini 的 50.00%；五次重复 49.60±0.91；去泄漏划分下仍有 41.07%。诚实点：标题的"蒸馏"轻微夸大——不更新任何参数，是免训练的结构化 prompt 注入（作者正文自述）；收益高度集中在 AppWorld（ToolSandbox 仅 +3.4 个点）；最反直觉的是老师不是越强越好，更强的老师带 4B 学生反而更差。评级：人上人。
+
+**3. SkillAligner: Treating Retrieved Skills as Adaptable Drafts at Execution Time**（浙江大学，arXiv:2608.06880）
+先给了一个很值钱的诊断：语义相关不等于执行有用。把 BM25 top-5 技能文档原样注入，会把本来做对的任务翻成失败——九个设定里全部出现这种技能引起的退化，比例 5.80%–17.91%，且换更强的模型不解决。原因是查询、执行接口、以及同时检索到的其它技能三者都在变，所以"这个技能该怎么用"没法提前写死。做法：执行前加一次 LLM 调用，把 top-5 技能连同执行规范（工具、schema、合法动作格式、权限）重写成一份四字段紧凑指南，免训练、与检索器无关。九设定平均 47.07→58.17（九格全胜），退化率 17.91/9.40/10.29→2.24/2.80/3.57。诚实点：38.26% 的净 token 节省是被 SearchQA 拉高的平均值（SearchQA 62.77% vs ALFWorld 26.33%）；指南一次生成后全程冻结，中途不匹配也改不了；退化归因由另一模型打标且未报人工一致性。评级：人上人。
+
+## 快速一览
+
+- Routing LLM Inference to the Cleanest Grid in Real Time（arXiv:2608.06188）· 生产 GPU 路由器上的碳排放项；口径：线上实测仅省 1.45%，约 51% 来自一整年历史回放的建模值。
+- A Picture is Worth a Thousand Tokens（arXiv:2608.07427，爱立信）· 电信 KPI 时序渲染成二维图喂 VLM，输入 token 降 3.6–10.4×、实测每查询 GPU 能耗降 1.8–2.5×。
+- DASH（arXiv:2608.06243）· 自蒸馏里把每 token 的损失权重改成由散度决定的自适应门控。
+
+## 论文与链接
+
+- ReQuant — arXiv:2608.07019
+- Agent Memory Distillation — arXiv:2608.07169
+- SkillAligner — arXiv:2608.06880
+- Routing LLM Inference to the Cleanest Grid — arXiv:2608.06188
+- A Picture is Worth a Thousand Tokens — arXiv:2608.07427
+- DASH — arXiv:2608.06243
+]]></description>
+      <content:encoded><![CDATA[# 0810 MLSYS 论文简报：别把上一步的输出当定稿
+Audio: 09:33
+
+> 今天三篇干的是同一个动作：回头去改上一阶段已经定死的东西。量化把整数码当定局、记忆把老师的经验原样搬、技能库把检索到的文档直接塞进 prompt——三篇都说，那只是草稿。三篇都评人上人，而且都罕见地诚实。
+
+## 内容时间戳
+
+- 00:00 开场 · 三篇干的是同一个动作
+- 00:39 ReQuant（北大 / 港中深 / 中兴）· 量化后回头翻整数码（人上人）
+- 03:32 Agent Memory Distillation（KAIST / DeepAuto.ai）· 老师记忆按学生能力重切粒度（人上人）
+- 06:23 SkillAligner（浙江大学）· 执行前把检索到的技能重写一遍（人上人）
+- 08:28 快速一览 · 碳感知路由 / VLM 看图省 token / 自蒸馏门控
+- 09:21 收尾
+
+## 本期主讲
+
+**1. ReQuant: Fixed-Grid Discrete Refinement for Post-Training Quantization**（北京大学 / 香港中文大学深圳 / 中兴，arXiv:2608.07019）
+训练后量化流水线产出一份整数分配就停了——权重一旦映到格点，这个离散决策就当最终答案；GPTQ 的贪心逐列扫描里前面的列冻住、只让后面的列补偿。ReQuant 的观察是层重建损失按输出行可分解、行内对量化误差是凸二次，所以把一个坐标挪到相邻格点的损失变化有闭式解，从缓存梯度里 O(1) 可算，于是能做离散坐标下降。它接在任何已完成的 PTQ 输出之后，冻住位宽、scale、zero-point、格点布局、存储格式与推理 kernel，只反复翻整数码，且只接受严格降低重建误差的翻转，并有有限步终止证明——部署侧完全不变。实测弱初始化收益很猛：Llama-3 8B W4A4+QuaRot 下 RTN 十任务均值 53.33→61.94，70B 上 32.78→66.93；W2A4 下 GPTQ 35.88→41.00 且 WikiText-2 困惑度 31.98→15.06。诚实点：真正收益集中在弱初始化，对上已经很强的 GPTAQ 只有 +0.04 到 +0.81 分，低于它自己五个种子的 ±0.55 波动，与噪声分不开（论文自己报了）；离线代价是初始化器的 5–16 倍。评级：人上人。
+
+**2. Agent Memory Distillation: Empowering Small LLM Agents with Hierarchical Teacher Memory**（KAIST / DeepAuto.ai，arXiv:2608.07169）
+小模型 agent 成功率低，攒出来的记忆库全是失败轨迹，记忆系统在小模型上基本失效；而把大老师的记忆原样塞给学生也不行——老师写的是"先登录再放歌"这种高层策略，学生根本不会执行登录那一步。洞察是记忆的粒度与表示形式要和学生能力对齐，并做成了消融：子任务记忆用代码 49.40% 对纯自然语言 23.21%，工作流记忆反过来自然语言 49.40% 优于代码 44.05%。老师只从成功轨迹抽三层记忆（工作流 / 子任务 / 函数），前两层开场注入，函数记忆只在工具报错时按函数名反应式检索，全程 k=1、不训练任何参数。Qwen3-4B 在 AppWorld 上 14.88%→49.40%，逼近老师 GPT-5-mini 的 50.00%；五次重复 49.60±0.91；去泄漏划分下仍有 41.07%。诚实点：标题的"蒸馏"轻微夸大——不更新任何参数，是免训练的结构化 prompt 注入（作者正文自述）；收益高度集中在 AppWorld（ToolSandbox 仅 +3.4 个点）；最反直觉的是老师不是越强越好，更强的老师带 4B 学生反而更差。评级：人上人。
+
+**3. SkillAligner: Treating Retrieved Skills as Adaptable Drafts at Execution Time**（浙江大学，arXiv:2608.06880）
+先给了一个很值钱的诊断：语义相关不等于执行有用。把 BM25 top-5 技能文档原样注入，会把本来做对的任务翻成失败——九个设定里全部出现这种技能引起的退化，比例 5.80%–17.91%，且换更强的模型不解决。原因是查询、执行接口、以及同时检索到的其它技能三者都在变，所以"这个技能该怎么用"没法提前写死。做法：执行前加一次 LLM 调用，把 top-5 技能连同执行规范（工具、schema、合法动作格式、权限）重写成一份四字段紧凑指南，免训练、与检索器无关。九设定平均 47.07→58.17（九格全胜），退化率 17.91/9.40/10.29→2.24/2.80/3.57。诚实点：38.26% 的净 token 节省是被 SearchQA 拉高的平均值（SearchQA 62.77% vs ALFWorld 26.33%）；指南一次生成后全程冻结，中途不匹配也改不了；退化归因由另一模型打标且未报人工一致性。评级：人上人。
+
+## 快速一览
+
+- Routing LLM Inference to the Cleanest Grid in Real Time（arXiv:2608.06188）· 生产 GPU 路由器上的碳排放项；口径：线上实测仅省 1.45%，约 51% 来自一整年历史回放的建模值。
+- A Picture is Worth a Thousand Tokens（arXiv:2608.07427，爱立信）· 电信 KPI 时序渲染成二维图喂 VLM，输入 token 降 3.6–10.4×、实测每查询 GPU 能耗降 1.8–2.5×。
+- DASH（arXiv:2608.06243）· 自蒸馏里把每 token 的损失权重改成由散度决定的自适应门控。
+
+## 论文与链接
+
+- ReQuant — arXiv:2608.07019
+- Agent Memory Distillation — arXiv:2608.07169
+- SkillAligner — arXiv:2608.06880
+- Routing LLM Inference to the Cleanest Grid — arXiv:2608.06188
+- A Picture is Worth a Thousand Tokens — arXiv:2608.07427
+- DASH — arXiv:2608.06243
+]]></content:encoded>
+      <pubDate>Mon, 10 Aug 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-08-10</guid>
+      <enclosure url="https://baihuajun24.github.io/podcast/audio/0810-daily-arxiv.mp3" length="9174573" type="audio/mpeg" />
+      <itunes:duration>09:33</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0807 MLSYS 论文简报：你以为的路由收益，可能只是重跑噪声</title>
       <description><![CDATA[# 0807 MLSYS 论文简报：你以为的路由收益，可能只是重跑噪声
