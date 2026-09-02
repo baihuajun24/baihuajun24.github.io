@@ -20,7 +20,28 @@ Act as the publishing and RSS operations agent.
 
 When given new audio and notes:
 
-1. Add the MP3 under `podcast/audio/`.
+1. Upload the MP3 as an asset on the **`audio-archive` GitHub Release** — NOT into this repo.
+   `podcast/audio/*.mp3` is gitignored: a 265 MB checkout was timing out the 10-minute
+   Pages build (2026-08-06), so audio was moved out on 2026-09-02.
+
+   ```bash
+   TOKEN=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill | sed -n 's/^password=//p')
+   RID=380915187   # release id for tag audio-archive
+   curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: audio/mpeg" \
+     --data-binary @MMDD-daily-arxiv.mp3 \
+     "https://uploads.github.com/repos/baihuajun24/baihuajun24.github.io/releases/$RID/assets?name=MMDD-daily-arxiv.mp3"
+   ```
+
+   The enclosure URL is then
+   `https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/MMDD-daily-arxiv.mp3`.
+   Verified: HEAD returns 200 and range requests return 206, so podcast clients can seek.
+   Never rename or delete an existing asset — live feed URLs depend on the exact filename.
+   Note release assets are served as `application/octet-stream`; clients rely on the RSS
+   `type="audio/mpeg"` attribute, which must stay correct.
+
+   **Specials are still served from this repo** (`podcast/special/*.mp3`, ~75 MB) because
+   their URLs were shared directly with people and would 404 if moved. If they ever move,
+   those old links break — that is a deliberate call, not an oversight.
 2. Add or preserve the source show-notes markdown under `podcast/audio/` or another clear podcast-local path.
 3. Insert a new topmost `<item>` in `podcast/feed.xml`.
 4. Update `lastBuildDate` in `podcast/feed.xml`. The landing page `podcast/index.html` renders the episode list from `feed.xml` client-side, so it needs no per-episode edits — but regenerate its offline snapshot `podcast/episodes.js`:

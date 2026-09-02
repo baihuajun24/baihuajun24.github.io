@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Mon, 10 Aug 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,100 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>0902 MLSYS 论文简报：agent 把缓存这本账重记了</title>
+      <description><![CDATA[# 0902 MLSYS 论文简报：agent 把缓存这本账重记了
+Audio: 11:18
+
+> 停更三周，回来第一期做一个主题：当请求从人打字变成 agent 自动发起，KV 缓存这本账被重记了。三篇论文正好落在三个尺度上——集群怎么路由、单机留什么、以及缓存的单位到底该是什么。
+
+## 内容时间戳
+
+- 00:00 开场 · 缓存这本账，被 agent 重记了
+- 00:28 SMetric（上海交大 / 阿里）· 生产轨迹：92.9% 请求由 agent 发起，复用率 80%+
+- 01:43 反直觉的一条 · 全局层配满后，完全不看缓存的调度器只差 7%
+- 02:57 只调度每个会话的第一个请求 · 轮次信号是白嫖的，路由器保持无状态
+- 03:48 SMetric 的账 · 2% 低端就是全局层满配点；增益只在饱和拐点附近（夯）
+- 04:39 TOPAS（中科大 / 合工大）· 前缀常驻 vs 批处理显存，1.8-1.9 倍的差距
+- 05:40 联合状态打分 · 收益按任务最长剩余路径的期望缩短量算
+- 06:29 TOPAS 的账 · 39.8% 来自合成负载，真实工作流 9.8%；单卡单次无方差（人上人）
+- 07:12 ReCache（上海交大 / 宁波东方理工 / 西安交大）· 可重排的工具集合不是前缀
+- 07:58 抹掉跨资源注意力 + 位置归零 · 同一个工具永远是同一份 KV
+- 08:21 字段消融 · 只留末尾 token 幻觉率 76%；加回工具名幻觉率相对降 97.63%
+- 08:54 描述几乎无用，参数怎么填才值钱 · 模型要的是约束不是散文
+- 09:31 ReCache 的三笔账 · 要全参微调、未见工具掉 5.5 分、没跑任何缓存复用基线（人上人）
+- 10:37 收尾 · 你优化的是命中率，还是命中来自哪一层？
+
+## 本期主讲
+
+**1. SMetric: Rethink LLM Scheduling for Serving Agents with Balanced Session-centric Scheduling**（上海交通大学并行与分布式系统研究所 / 阿里巴巴，arXiv:2607.08565）
+先摆生产数据：两条真实商用编码智能体的 trace 里，92.9% 的请求由 agent 自动发起而非人在打字；KV 缓存可复用比例超过 80%，而聊天负载只有 54–62%。目标也随之改变——agent 只在拿到完整回复后才行动，集群总吞吐成了第一目标。于是调度器都在抢缓存亲和，代价是负载不均衡（生产调度器 2.7×、学术基线 3.0×）。最有价值的观察是反直觉的：全局缓存层配满时，完全不看缓存的纯负载均衡调度器吞吐只低 7%，四种策略整体复用率都在 73–75%，差别只在命中层级（本地命中 58% vs 6%）——全局层已经把「复用」和「请求落点」解耦了。另一个数字说明「会话钉死」：缓存亲和下 96.6% 的后续请求回到首轮实例，纯负载均衡下只有 4.0%。方案因此只有一句：只把每个会话的首个请求纯按负载打散，后续照常走缓存亲和；而「这是第几轮」这个信号是白嫖的——接口无状态、每个请求都带完整历史，数消息条数即可，路由器保持完全无状态（他们刻意否决了 session→instance 映射表，因为会话永不显式结束、表会一直长还得 GC）。同机部署吞吐高 10–16%，首字时延中位数 1.1 秒。诚实点：宣传的「预填充吞吐 +2~34%」，2% 低端恰是全局层满配点——全局层越充裕优势越小；完全没有全局存储时与生产调度器差在 1% 以内；增益只集中在饱和拐点附近的窄区间（1.0× 负载差 1%、1.5× 高 15%、1.75× 只高 4%）；trace 未公开、两条只回放一条、采集窗口仅两小时、测试床 32 张卡对上千卡生产集群。评级：夯。
+
+**2. TOPAS: Workflow-Aware Prefix-State Scheduling for Multi-Agent LLM Serving**（中国科学技术大学 / 合肥工业大学，arXiv:2608.25523）
+把同一个矛盾下沉到一张卡：agent 的长 system prompt 前缀常驻能省 prefill，但它占走的显存正是留给并发批处理和解码的显存。动机实验朴素也够狠——同一批请求、同样预算，只把服务顺序从两个 agent 交替改成按 agent 分组，平均批大小从 4.7 涨到 9.3，总耗时从 2086 秒掉到 1145 秒。论文里还有一张手算的图：追进度的策略平均完成时间 21.5，而攒同前缀请求、摊薄装载费的策略反而是 24——两种看起来都对的直觉互相打脸。做法是不再逐个请求排序，而是枚举「这一步之后留哪几段前缀、同时能跑哪一批请求」这个联合状态并按秒打分；最值得说的是收益的定义——不按请求自身的服务时间算，而按这个请求做完之后任务最长剩余路径能缩短多少，于是推进一条非瓶颈分支不会被错记成进度。实现于 SGLang v0.5.3。数字：合成工作流 mean/p99 完成时间降 39.8%/49.4%，真实的两个 MetaGPT 工作流分别是 22.0% 和 9.8%。诚实点：39.8% 来自合成负载（固定长度 query + 固定生成长度，把「路径长度可预测」这个最有利条件给足了），真实流水线上是个位数；单张 A100、单实例，到达序列只采样一次、无重复实验、无方差——p99 尾指标在单次实验下尤其不稳；它还假设所有任务遵循同一个已知的工作流图，而核心量「最长剩余路径」正是靠这张图算出来的。评级：人上人。
+
+**3. ReCache: Efficient KV Cache Reuse and Compression for Tool-Augmented LLM Agents**（上海交通大学 / 宁波东方理工大学 / 西安交通大学，arXiv:2608.19662）
+前两篇都还认「前缀」，这篇说在 agent 上这个前提已经不成立：agent 按任务检索工具，同一个工具反复出现，但每次的组合不同、顺序也不同；而前缀缓存要求复用内容构成完全相同的前缀，所以换掉一个工具、或同一批换个排列顺序，后面所有工具的 KV 全部作废。改法是抹掉跨资源注意力、把每个工具内部的位置索引归零重排，而周围上下文保留原位置——同一个工具无论排第几、和谁一起被检索，KV 都是同一份，可以离线单独构造、单独复用。消融里有全篇最刺眼的数字：每个工具只留最后一个 token，调用分数掉到 14.8、幻觉率 76%，模型基本在瞎编工具名；仅仅把工具名加回去，幻觉率就相对下降 97.63%。另一个对照更好玩：在工具名和参数名的基础上再加「这个工具是干嘛的」那段描述，分数只从 67.7 动到 67.9，而加「这个参数该怎么填」直接到 72.8——模型要的是约束，不是散文。数字上，只做那一步注意力改造，见过的工具上 82.3 对稠密基线 82.4 基本持平、首字时延快 3.655 倍，完整版显存降 92.43%。诚实点：它不是免训练的，需要全参数微调（作者在 Limitations 自承冻结模型留作未来工作）；「基本持平」的 82.3 只是单独一项且只在训练见过的工具上成立，完整版在见过的工具上掉 2.1 分、在完全没见过的工具上是 60.8 对 66.3、掉 5.5 分——而「没见过的新工具」恰恰是它想解决的场景；表里没有跑任何一个真正的缓存复用基线（前缀缓存、EPIC、CacheBlend、KVLink、KVCOMM 全都只在文献综述里）；3.655 倍那个首字时延定义上排除了离线缓存构造，等于假设 100% 命中。评级：人上人。
+
+## 收尾
+
+三篇在三个尺度上打同一场仗。共同点是 agent 同时拆掉了两个前提：一个是「复用和请求落在哪儿绑定」——全局缓存层已经把它解耦了；另一个是「复用是前缀形状的」——可重排的工具集合根本不是前缀。所以下次看到「我们做了 KV 缓存优化」，可以先问一句：你优化的是命中率，还是命中来自哪一层？
+
+## 论文与链接
+
+- SMetric — arXiv:2607.08565
+- TOPAS — arXiv:2608.25523
+- ReCache — arXiv:2608.19662
+]]></description>
+      <content:encoded><![CDATA[# 0902 MLSYS 论文简报：agent 把缓存这本账重记了
+Audio: 11:18
+
+> 停更三周，回来第一期做一个主题：当请求从人打字变成 agent 自动发起，KV 缓存这本账被重记了。三篇论文正好落在三个尺度上——集群怎么路由、单机留什么、以及缓存的单位到底该是什么。
+
+## 内容时间戳
+
+- 00:00 开场 · 缓存这本账，被 agent 重记了
+- 00:28 SMetric（上海交大 / 阿里）· 生产轨迹：92.9% 请求由 agent 发起，复用率 80%+
+- 01:43 反直觉的一条 · 全局层配满后，完全不看缓存的调度器只差 7%
+- 02:57 只调度每个会话的第一个请求 · 轮次信号是白嫖的，路由器保持无状态
+- 03:48 SMetric 的账 · 2% 低端就是全局层满配点；增益只在饱和拐点附近（夯）
+- 04:39 TOPAS（中科大 / 合工大）· 前缀常驻 vs 批处理显存，1.8-1.9 倍的差距
+- 05:40 联合状态打分 · 收益按任务最长剩余路径的期望缩短量算
+- 06:29 TOPAS 的账 · 39.8% 来自合成负载，真实工作流 9.8%；单卡单次无方差（人上人）
+- 07:12 ReCache（上海交大 / 宁波东方理工 / 西安交大）· 可重排的工具集合不是前缀
+- 07:58 抹掉跨资源注意力 + 位置归零 · 同一个工具永远是同一份 KV
+- 08:21 字段消融 · 只留末尾 token 幻觉率 76%；加回工具名幻觉率相对降 97.63%
+- 08:54 描述几乎无用，参数怎么填才值钱 · 模型要的是约束不是散文
+- 09:31 ReCache 的三笔账 · 要全参微调、未见工具掉 5.5 分、没跑任何缓存复用基线（人上人）
+- 10:37 收尾 · 你优化的是命中率，还是命中来自哪一层？
+
+## 本期主讲
+
+**1. SMetric: Rethink LLM Scheduling for Serving Agents with Balanced Session-centric Scheduling**（上海交通大学并行与分布式系统研究所 / 阿里巴巴，arXiv:2607.08565）
+先摆生产数据：两条真实商用编码智能体的 trace 里，92.9% 的请求由 agent 自动发起而非人在打字；KV 缓存可复用比例超过 80%，而聊天负载只有 54–62%。目标也随之改变——agent 只在拿到完整回复后才行动，集群总吞吐成了第一目标。于是调度器都在抢缓存亲和，代价是负载不均衡（生产调度器 2.7×、学术基线 3.0×）。最有价值的观察是反直觉的：全局缓存层配满时，完全不看缓存的纯负载均衡调度器吞吐只低 7%，四种策略整体复用率都在 73–75%，差别只在命中层级（本地命中 58% vs 6%）——全局层已经把「复用」和「请求落点」解耦了。另一个数字说明「会话钉死」：缓存亲和下 96.6% 的后续请求回到首轮实例，纯负载均衡下只有 4.0%。方案因此只有一句：只把每个会话的首个请求纯按负载打散，后续照常走缓存亲和；而「这是第几轮」这个信号是白嫖的——接口无状态、每个请求都带完整历史，数消息条数即可，路由器保持完全无状态（他们刻意否决了 session→instance 映射表，因为会话永不显式结束、表会一直长还得 GC）。同机部署吞吐高 10–16%，首字时延中位数 1.1 秒。诚实点：宣传的「预填充吞吐 +2~34%」，2% 低端恰是全局层满配点——全局层越充裕优势越小；完全没有全局存储时与生产调度器差在 1% 以内；增益只集中在饱和拐点附近的窄区间（1.0× 负载差 1%、1.5× 高 15%、1.75× 只高 4%）；trace 未公开、两条只回放一条、采集窗口仅两小时、测试床 32 张卡对上千卡生产集群。评级：夯。
+
+**2. TOPAS: Workflow-Aware Prefix-State Scheduling for Multi-Agent LLM Serving**（中国科学技术大学 / 合肥工业大学，arXiv:2608.25523）
+把同一个矛盾下沉到一张卡：agent 的长 system prompt 前缀常驻能省 prefill，但它占走的显存正是留给并发批处理和解码的显存。动机实验朴素也够狠——同一批请求、同样预算，只把服务顺序从两个 agent 交替改成按 agent 分组，平均批大小从 4.7 涨到 9.3，总耗时从 2086 秒掉到 1145 秒。论文里还有一张手算的图：追进度的策略平均完成时间 21.5，而攒同前缀请求、摊薄装载费的策略反而是 24——两种看起来都对的直觉互相打脸。做法是不再逐个请求排序，而是枚举「这一步之后留哪几段前缀、同时能跑哪一批请求」这个联合状态并按秒打分；最值得说的是收益的定义——不按请求自身的服务时间算，而按这个请求做完之后任务最长剩余路径能缩短多少，于是推进一条非瓶颈分支不会被错记成进度。实现于 SGLang v0.5.3。数字：合成工作流 mean/p99 完成时间降 39.8%/49.4%，真实的两个 MetaGPT 工作流分别是 22.0% 和 9.8%。诚实点：39.8% 来自合成负载（固定长度 query + 固定生成长度，把「路径长度可预测」这个最有利条件给足了），真实流水线上是个位数；单张 A100、单实例，到达序列只采样一次、无重复实验、无方差——p99 尾指标在单次实验下尤其不稳；它还假设所有任务遵循同一个已知的工作流图，而核心量「最长剩余路径」正是靠这张图算出来的。评级：人上人。
+
+**3. ReCache: Efficient KV Cache Reuse and Compression for Tool-Augmented LLM Agents**（上海交通大学 / 宁波东方理工大学 / 西安交通大学，arXiv:2608.19662）
+前两篇都还认「前缀」，这篇说在 agent 上这个前提已经不成立：agent 按任务检索工具，同一个工具反复出现，但每次的组合不同、顺序也不同；而前缀缓存要求复用内容构成完全相同的前缀，所以换掉一个工具、或同一批换个排列顺序，后面所有工具的 KV 全部作废。改法是抹掉跨资源注意力、把每个工具内部的位置索引归零重排，而周围上下文保留原位置——同一个工具无论排第几、和谁一起被检索，KV 都是同一份，可以离线单独构造、单独复用。消融里有全篇最刺眼的数字：每个工具只留最后一个 token，调用分数掉到 14.8、幻觉率 76%，模型基本在瞎编工具名；仅仅把工具名加回去，幻觉率就相对下降 97.63%。另一个对照更好玩：在工具名和参数名的基础上再加「这个工具是干嘛的」那段描述，分数只从 67.7 动到 67.9，而加「这个参数该怎么填」直接到 72.8——模型要的是约束，不是散文。数字上，只做那一步注意力改造，见过的工具上 82.3 对稠密基线 82.4 基本持平、首字时延快 3.655 倍，完整版显存降 92.43%。诚实点：它不是免训练的，需要全参数微调（作者在 Limitations 自承冻结模型留作未来工作）；「基本持平」的 82.3 只是单独一项且只在训练见过的工具上成立，完整版在见过的工具上掉 2.1 分、在完全没见过的工具上是 60.8 对 66.3、掉 5.5 分——而「没见过的新工具」恰恰是它想解决的场景；表里没有跑任何一个真正的缓存复用基线（前缀缓存、EPIC、CacheBlend、KVLink、KVCOMM 全都只在文献综述里）；3.655 倍那个首字时延定义上排除了离线缓存构造，等于假设 100% 命中。评级：人上人。
+
+## 收尾
+
+三篇在三个尺度上打同一场仗。共同点是 agent 同时拆掉了两个前提：一个是「复用和请求落在哪儿绑定」——全局缓存层已经把它解耦了；另一个是「复用是前缀形状的」——可重排的工具集合根本不是前缀。所以下次看到「我们做了 KV 缓存优化」，可以先问一句：你优化的是命中率，还是命中来自哪一层？
+
+## 论文与链接
+
+- SMetric — arXiv:2607.08565
+- TOPAS — arXiv:2608.25523
+- ReCache — arXiv:2608.19662
+]]></content:encoded>
+      <pubDate>Wed, 02 Sep 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-09-02</guid>
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0902-daily-arxiv.mp3" length="10850733" type="audio/mpeg" />
+      <itunes:duration>11:18</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0810 MLSYS 论文简报：别把上一步的输出当定稿</title>
       <description><![CDATA[# 0810 MLSYS 论文简报：别把上一步的输出当定稿
@@ -105,7 +199,7 @@ Audio: 09:33
 ]]></content:encoded>
       <pubDate>Mon, 10 Aug 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-08-10</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0810-daily-arxiv.mp3" length="9174573" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0810-daily-arxiv.mp3" length="9174573" type="audio/mpeg" />
       <itunes:duration>09:33</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -187,7 +281,7 @@ Audio: 09:31
 ]]></content:encoded>
       <pubDate>Fri, 07 Aug 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-08-07</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0807-daily-arxiv.mp3" length="9133101" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0807-daily-arxiv.mp3" length="9133101" type="audio/mpeg" />
       <itunes:duration>09:31</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -271,7 +365,7 @@ Audio: 10:58
 ]]></content:encoded>
       <pubDate>Thu, 06 Aug 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-08-06</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0806-daily-arxiv.mp3" length="10528557" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0806-daily-arxiv.mp3" length="10528557" type="audio/mpeg" />
       <itunes:duration>10:58</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -324,7 +418,7 @@ agent 跑久了历史会爆，现在都靠上下文压缩续命，但没人说�
 ]]></description>
       <pubDate>Tue, 04 Aug 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-08-04</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0804-daily-arxiv.mp3" length="8598957" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0804-daily-arxiv.mp3" length="8598957" type="audio/mpeg" />
       <itunes:duration>08:57</itunes:duration>
       <content:encoded><![CDATA[# 0804 MLSYS 论文简报：Bole 让混合注意力也能玩树投机
 Audio: 08:57
@@ -421,7 +515,7 @@ Audio: 08:42
 ]]></description>
       <pubDate>Mon, 03 Aug 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-08-03</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0803-daily-arxiv.mp3" length="8350509" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0803-daily-arxiv.mp3" length="8350509" type="audio/mpeg" />
       <itunes:duration>08:42</itunes:duration>
       <content:encoded><![CDATA[# 0803 MLSYS 论文简报：给推理省钱的三个层面
 Audio: 08:42
@@ -557,7 +651,7 @@ DSA 这类 token 级稀疏注意力让下游算得便宜了，但瓶颈转移到
 ]]></content:encoded>
       <pubDate>Wed, 29 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-29</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0729-daily-arxiv.mp3" length="9553581" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0729-daily-arxiv.mp3" length="9553581" type="audio/mpeg" />
       <itunes:duration>09:57</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -651,7 +745,7 @@ Audio: 11:06
 ]]></content:encoded>
       <pubDate>Tue, 28 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-28</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0728-daily-arxiv.mp3" length="10658733" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0728-daily-arxiv.mp3" length="10658733" type="audio/mpeg" />
       <itunes:duration>11:06</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -731,7 +825,7 @@ GitHub Copilot Auto 背后的路由器。不预测"用哪个模型"，而是预�
 ]]></content:encoded>
       <pubDate>Thu, 09 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-09</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0709-daily-arxiv.mp3" length="4512333" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0709-daily-arxiv.mp3" length="4512333" type="audio/mpeg" />
       <itunes:duration>08:23</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -817,7 +911,7 @@ Audio: 09:31
 ]]></content:encoded>
       <pubDate>Fri, 03 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-03</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0703-daily-arxiv.mp3" length="5063589" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0703-daily-arxiv.mp3" length="5063589" type="audio/mpeg" />
       <itunes:duration>09:31</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -909,7 +1003,7 @@ Audio: 09:31
 ]]></content:encoded>
       <pubDate>Thu, 02 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-02</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0702-daily-arxiv.mp3" length="6386805" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0702-daily-arxiv.mp3" length="6386805" type="audio/mpeg" />
       <itunes:duration>12:09</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -989,7 +1083,7 @@ Audio: 10:07
 ]]></content:encoded>
       <pubDate>Wed, 01 Jul 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-07-01</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0701-daily-arxiv.mp3" length="5440773" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0701-daily-arxiv.mp3" length="5440773" type="audio/mpeg" />
       <itunes:duration>10:07</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1093,7 +1187,7 @@ Audio: 14:44
 ]]></content:encoded>
       <pubDate>Wed, 24 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-24</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0624-daily-arxiv.mp3" length="7435533" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0624-daily-arxiv.mp3" length="7435533" type="audio/mpeg" />
       <itunes:duration>14:44</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1165,7 +1259,7 @@ Audio: 11:21
 ]]></content:encoded>
       <pubDate>Tue, 23 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-23</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0623-daily-arxiv.mp3" length="6660141" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0623-daily-arxiv.mp3" length="6660141" type="audio/mpeg" />
       <itunes:duration>11:21</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1241,7 +1335,7 @@ Audio: 15:04
 ]]></content:encoded>
       <pubDate>Sat, 20 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-20</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0620-daily-arxiv.mp3" length="14480685" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0620-daily-arxiv.mp3" length="14480685" type="audio/mpeg" />
       <itunes:duration>15:05</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1317,7 +1411,7 @@ Audio: 10:01
 ]]></content:encoded>
       <pubDate>Fri, 19 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-19</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0619-daily-arxiv.mp3" length="9626541" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0619-daily-arxiv.mp3" length="9626541" type="audio/mpeg" />
       <itunes:duration>10:01</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1403,7 +1497,7 @@ Audio: 13:31
 ]]></content:encoded>
       <pubDate>Tue, 17 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-17</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0617-daily-arxiv.mp3" length="12982316" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0617-daily-arxiv.mp3" length="12982316" type="audio/mpeg" />
       <itunes:duration>13:31</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1477,7 +1571,7 @@ Audio: 11:53
 ]]></content:encoded>
       <pubDate>Tue, 16 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-16</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0616-daily-arxiv.mp3" length="11423276" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0616-daily-arxiv.mp3" length="11423276" type="audio/mpeg" />
       <itunes:duration>11:53</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1545,7 +1639,7 @@ Audio: 11:06
 ]]></content:encoded>
       <pubDate>Sat, 13 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-13</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0613-daily-arxiv.mp3" length="10659884" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0613-daily-arxiv.mp3" length="10659884" type="audio/mpeg" />
       <itunes:duration>11:06</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1631,7 +1725,7 @@ Audio: 12:13
 ]]></content:encoded>
       <pubDate>Fri, 12 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-12</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0612-daily-arxiv.mp3" length="11737772" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0612-daily-arxiv.mp3" length="11737772" type="audio/mpeg" />
       <itunes:duration>12:13</itunes:duration>
     </item>
     <item>
@@ -1702,7 +1796,7 @@ Audio: 09:17
 ]]></content:encoded>
       <pubDate>Thu, 11 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-11</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0611-daily-arxiv.mp3" length="8915756" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0611-daily-arxiv.mp3" length="8915756" type="audio/mpeg" />
       <itunes:duration>09:17</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1782,7 +1876,7 @@ Audio: 09:11
 ]]></content:encoded>
       <pubDate>Wed, 10 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-10</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0610-daily-arxiv.mp3" length="8830508" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0610-daily-arxiv.mp3" length="8830508" type="audio/mpeg" />
       <itunes:duration>09:11</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -1854,7 +1948,7 @@ Audio: 09:22
 ]]></content:encoded>
       <pubDate>Tue, 09 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-09</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0609-daily-arxiv.mp3" length="8994860" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0609-daily-arxiv.mp3" length="8994860" type="audio/mpeg" />
       <itunes:duration>09:22</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -2032,7 +2126,7 @@ SeaCache 讨论扩散模型缓存有效性与频谱演化；VGGT-Ω 代表 feed-
 ]]></content:encoded>
       <pubDate>Mon, 08 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-08-cvpr-special</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0608-cvpr2026-resnet-d4rt.mp3" length="9896492" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0608-cvpr2026-resnet-d4rt.mp3" length="9896492" type="audio/mpeg" />
       <itunes:duration>10:18</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -2104,7 +2198,7 @@ Audio: 10:50
 ]]></content:encoded>
       <pubDate>Sat, 06 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-06</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0606-daily-arxiv.mp3" length="10414892" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0606-daily-arxiv.mp3" length="10414892" type="audio/mpeg" />
       <itunes:duration>10:50</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -2190,7 +2284,7 @@ Audio: 09:48
 ]]></content:encoded>
       <pubDate>Fri, 05 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">mlsys-feed-2026-06-05</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0605-daily-arxiv.mp3" length="9421868" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0605-daily-arxiv.mp3" length="9421868" type="audio/mpeg" />
       <itunes:duration>09:48</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -2296,7 +2390,7 @@ Audio: 08:40
   - 今日重点：Libra 是 agentic RL 资源管理必读；Agent libOS 提供 capability-based runtime 视角；两篇引用 PARD 的工作都指向 runtime adaptive speculative decoding。]]></content:encoded>
       <pubDate>Thu, 04 Jun 2026 00:30:00 GMT</pubDate>
       <guid isPermaLink="false">huajun-daily-arxiv-2026-06-04</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0604-daily-arxiv.mp3" length="8321324" type="audio/mpeg" />
+      <enclosure url="https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/0604-daily-arxiv.mp3" length="8321324" type="audio/mpeg" />
       <itunes:duration>08:40</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>

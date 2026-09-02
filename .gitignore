@@ -3,3 +3,8 @@
 
 # personal application draft — keep off the public site
 miracleplus_compute_application_draft_2026.md
+
+# Podcast audio lives in the "audio-archive" GitHub Release, not in this repo —
+# a 265 MB checkout was timing out the 10-minute Pages build (2026-08-06).
+# RSS enclosures point at the release download URLs.
+podcast/audio/*.mp3
