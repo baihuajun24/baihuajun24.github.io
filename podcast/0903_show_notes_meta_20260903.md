@@ -45,7 +45,7 @@ Token-Efficient Data Reasoning Agents via Adaptive Structuring of Unstructured D
 The Reasoning Tax: Token Economics of LLM Reasoning — arXiv:2608.26235
 
 制作元信息
-选题：按 PI 要求，至少一篇取自当日新 feed（Parsing the Stream，2026-09-02 批次），至少一篇取自过去 20 天候选池（String / agentic data cracking / 推理税），主题自定。共 carding 五篇、promote 三篇，被否的记录在 rejected_champion_cards.json。
+选题：一篇取自当日新论文（Parsing the Stream，2026-09-02 批次），另两篇取自过去三周的候选池。本期共精读五篇、选入三篇。
 关系：本期是 0902 的对偶篇——0902 三篇都在让 agent 上下文更便宜地被服务，本期三篇都在问它是否该存在。0902 的 ReCache（把工具 schema 缓存得更便宜）与本期 String（干脆延后披露 schema）是同一成本问题的相反解法。
 来源：三篇主讲与两篇被否候选均为全文精读（PDF 逐页），机构取自 PDF 首页作者块。
 口径：各篇数字均为论文自报，模型与基准不同不可横比。Parsing the Stream 的对照基线被预算封顶且公平基线未跑；String 的成功率差在噪声内、该表无方差；agentic data cracking 的复用局部性由作者构造且约四分之一问题净亏；推理税的数据来自第三方榜单、每格一次。
