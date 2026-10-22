@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /prototypes/
+Disallow: /drafts/
+Disallow: /assets/source/
+Disallow: /card.html
+
+Sitemap: https://baihuajun24.github.io/sitemap.xml

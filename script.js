@@ -1,46 +1,48 @@
+document.documentElement.classList.add('js');
+
 const menuToggle = document.querySelector('.menu-toggle');
 const primaryNav = document.querySelector('#primary-nav');
 
 if (menuToggle && primaryNav) {
-    const closeMenu = () => {
-        menuToggle.setAttribute('aria-expanded', 'false');
-        menuToggle.setAttribute('aria-label', 'Open navigation');
-        primaryNav.classList.remove('is-open');
+    const isChinese = document.documentElement.lang.toLowerCase().startsWith('zh');
+    const openLabel = menuToggle.dataset.openLabel || (isChinese ? '打开导航' : 'Open navigation');
+    const closeLabel = menuToggle.dataset.closeLabel || (isChinese ? '关闭导航' : 'Close navigation');
+    const mobileViewport = window.matchMedia('(max-width: 820px)');
+
+    const setMenuOpen = open => {
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? closeLabel : openLabel);
+        menuToggle.setAttribute('title', open ? closeLabel : openLabel);
+        primaryNav.classList.toggle('is-open', open);
     };
 
+    const closeMenu = () => {
+        setMenuOpen(false);
+    };
+
+    closeMenu();
+
     menuToggle.addEventListener('click', () => {
-        const open = menuToggle.getAttribute('aria-expanded') !== 'true';
-        menuToggle.setAttribute('aria-expanded', String(open));
-        menuToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-        primaryNav.classList.toggle('is-open', open);
+        setMenuOpen(menuToggle.getAttribute('aria-expanded') !== 'true');
     });
 
     primaryNav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-}
 
-const profileCard = document.querySelector('#profile-card');
-
-if (profileCard) {
-    const front = profileCard.querySelector('.portrait-front');
-    const back = profileCard.querySelector('.portrait-back');
-
-    profileCard.addEventListener('click', () => {
-        const flipped = profileCard.classList.toggle('is-flipped');
-        profileCard.setAttribute('aria-pressed', String(flipped));
-        front?.setAttribute('aria-hidden', String(flipped));
-        back?.setAttribute('aria-hidden', String(!flipped));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
+            closeMenu();
+            menuToggle.focus();
+        }
     });
-}
 
-// Keep the legacy Chinese homepage interaction working during the transition.
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', event => {
-        const target = document.querySelector(anchor.getAttribute('href'));
-        if (!target) return;
-        event.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
+    document.addEventListener('click', event => {
+        if (!menuToggle.contains(event.target) && !primaryNav.contains(event.target)) {
+            closeMenu();
+        }
     });
-});
+
+    mobileViewport.addEventListener('change', closeMenu);
+}
 
 const legacyPlayerCard = document.querySelector('#player-card');
 

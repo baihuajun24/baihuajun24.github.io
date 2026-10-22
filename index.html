@@ -1,356 +1,87 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Huajun Bai | Efficient AI Systems</title>
-    <meta name="description"
-        content="Local homepage prototype for Huajun Bai, a Tsinghua Ph.D. student working on efficient inference systems for language models and agents.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="academic.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Huajun Bai | Efficient LLM &amp; Agent Inference | Tsinghua</title>
+  <meta name="description" content="Huajun Bai is a Computer Science Ph.D. student at Tsinghua University. Research on speculative decoding, efficient reasoning, and agentic inference. Selected work: PARD, SpecExit, and SPORK.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#faf9f6">
+  <link rel="canonical" href="https://baihuajun24.github.io/">
+  <link rel="alternate" hreflang="en" href="https://baihuajun24.github.io/">
+  <link rel="alternate" hreflang="zh-CN" href="https://baihuajun24.github.io/index_zh.html">
+  <link rel="alternate" hreflang="x-default" href="https://baihuajun24.github.io/">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="Huajun Bai | Efficient LLM &amp; Agent Inference | Tsinghua">
+  <meta property="og:description" content="Huajun Bai is a Computer Science Ph.D. student at Tsinghua University. Research on speculative decoding, efficient reasoning, and agentic inference. Selected work: PARD, SpecExit, and SPORK.">
+  <meta property="og:url" content="https://baihuajun24.github.io/">
+  <meta property="og:image" content="https://baihuajun24.github.io/assets/profile/profile.JPG">
+  <meta property="og:image:alt" content="Huajun Bai / 白华君">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="academic.css?v=20261022">
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "ProfilePage", "@id": "https://baihuajun24.github.io/#profile", "url": "https://baihuajun24.github.io/", "inLanguage": "en", "mainEntity": {"@type": "Person", "@id": "https://baihuajun24.github.io/#person", "name": "Huajun Bai", "alternateName": "白华君", "url": "https://baihuajun24.github.io/", "image": "https://baihuajun24.github.io/assets/profile/profile.JPG", "description": "Huajun Bai is a Computer Science Ph.D. student at Tsinghua University. Research on speculative decoding, efficient reasoning, and agentic inference. Selected work: PARD, SpecExit, and SPORK.", "affiliation": {"@type": "CollegeOrUniversity", "name": "Tsinghua University"}, "sameAs": ["https://github.com/baihuajun24", "https://scholar.google.com/citations?user=bn5nR50AAAAJ", "https://www.linkedin.com/in/huajun-bai-041274a2/"]}}</script>
+  <script src="script.js?v=20261022" defer></script>
 </head>
-
 <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
-
-    <header class="site-header">
-        <div class="nav-wrap">
-            <a class="site-name" href="#about">Huajun Bai <span>白华君</span></a>
-            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"
-                aria-label="Open navigation" title="Navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
-                <a href="#research">Research</a>
-                <a href="#work">Selected Work</a>
-                <a href="#experience">Background</a>
-                <a href="#community">Community</a>
-                <a href="#contact">Contact</a>
-                <a href="index_zh.html" class="language-link">中文</a>
-            </nav>
-        </div>
-    </header>
-
-    <main id="main-content">
-        <section class="hero section-band" id="about">
-            <div class="wrap hero-grid">
-                <div class="hero-copy">
-                    <p class="eyebrow">Tsinghua University · AI Systems</p>
-                    <h1>Huajun Bai</h1>
-                    <p class="role">Ph.D. Student in Computer Science</p>
-                    <p class="hero-thesis">I study <em>Tokenomics</em>: making every token an LLM computes do useful
-                        work.</p>
-                    <div class="hero-intro">
-                        <p>I am advised by <strong>Prof. Jiwu Shu</strong> in Tsinghua University's
-                            <a href="https://storage.cs.tsinghua.edu.cn/" target="_blank" rel="noopener">Storage
-                                Research Group</a>.</p>
-                        <p>My work spans <strong>speculative decoding</strong>, <strong>efficient reasoning</strong>,
-                            and <strong>agentic inference</strong>, connecting algorithm design with real serving
-                            systems.
-                        </p>
-                    </div>
-                    <div class="hero-actions" aria-label="Profile links">
-                        <a class="action action-primary" href="https://github.com/baihuajun24" target="_blank"
-                            rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
-                        <a class="action" href="https://scholar.google.com/citations?user=bn5nR50AAAAJ"
-                            target="_blank" rel="noopener">Google Scholar <span aria-hidden="true">↗</span></a>
-                        <a class="action" href="https://www.linkedin.com/in/huajun-bai-041274a2/" target="_blank"
-                            rel="noopener">LinkedIn <span aria-hidden="true">↗</span></a>
-                        <a class="action" href="mailto:bhj24@mails.tsinghua.edu.cn">Email</a>
-                    </div>
-                </div>
-
-                <div class="portrait-column">
-                    <button class="portrait-flip" id="profile-card" type="button" aria-pressed="false"
-                        aria-label="Flip portrait to show academic football card">
-                        <span class="portrait-inner">
-                            <span class="portrait-face portrait-front">
-                                <img src="assets/profile/profile.JPG" alt="Huajun Bai">
-                                <span class="flip-cue" aria-hidden="true" title="Flip card">⚽</span>
-                            </span>
-                            <span class="portrait-face portrait-back" aria-hidden="true">
-                                <span class="gold-card">
-                                    <span class="gold-tier">GOLD</span>
-                                    <span class="gold-photo-wrap">
-                                        <img class="gold-photo" src="assets/card/profile_front_cutout.png" alt="">
-                                    </span>
-                                    <span class="gold-lower">
-                                        <strong>Huajun Bai</strong>
-                                        <span class="gold-stats">
-                                            <span><b>890+</b>CIT</span>
-                                            <span><b>7</b>PAPERS</span>
-                                            <span><b>12</b>REVIEWS</span>
-                                        </span>
-                                        <span class="gold-badges" aria-hidden="true">
-                                            <img src="assets/card/cornell-logo-card.png" alt="">
-                                            <img src="assets/card/thu-logo-card.png" alt="">
-                                            <img src="assets/card/amd-logo-card.png" alt="">
-                                            <img src="assets/card/hunyuan-logo-card.png" alt="">
-                                            <img src="assets/card/meituan-logo-card.png" alt="">
-                                        </span>
-                                    </span>
-                                </span>
-                            </span>
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <section class="section-band section-tinted" id="research">
-            <div class="wrap">
-                <div class="section-heading">
-                    <p class="eyebrow">Research agenda</p>
-                    <h2>Systems that spend inference time well</h2>
-                    <p>I study where autoregressive systems wait, repeat work, or compute tokens they do not need, then
-                        design mechanisms that remove those costs without changing model quality.</p>
-                </div>
-                <ol class="direction-grid">
-                    <li>
-                        <span class="direction-number">01</span>
-                        <h3>Agentic inference</h3>
-                        <p>Overlap model reasoning with tool execution to reduce agent latency.</p>
-                    </li>
-                    <li>
-                        <span class="direction-number">02</span>
-                        <h3>Speculative decoding</h3>
-                        <p>Make drafting cheaper and more useful under real serving constraints.</p>
-                    </li>
-                    <li>
-                        <span class="direction-number">03</span>
-                        <h3>Efficient reasoning</h3>
-                        <p>Reduce unnecessary generation while preserving answer quality.</p>
-                    </li>
-                </ol>
-            </div>
-        </section>
-
-        <section class="section-band" id="work">
-            <div class="wrap">
-                <div class="section-heading section-heading-narrow">
-                    <p class="eyebrow">Selected systems work</p>
-                    <h2>From inference mechanism to measured system result</h2>
-                </div>
-
-                <article class="work-item work-item-spork">
-                    <div class="work-meta">
-                        <span class="role-tag role-first">First author</span>
-                        <strong>arXiv 2026</strong>
-                        <span>Tsinghua</span>
-                    </div>
-                    <div class="work-body">
-                        <h3>SPORK: Self-Speculative Forking to Accelerate Agentic LLM Inference</h3>
-                        <p class="authors"><strong>Huajun Bai</strong>, Weiwei Lv, Huichuan Zheng, Youyou Lu, Jiwu Shu
-                        </p>
-                        <p>SPORK forks a lightweight probe while an agent is still reasoning, predicts the upcoming
-                            tool call, and dispatches it early so tool execution overlaps with the remaining decode. It
-                            requires no retraining, auxiliary model, or offline trace.</p>
-                        <ul class="result-list" aria-label="SPORK results">
-                            <li><strong>18%</strong> lower GAIA P95</li>
-                            <li><strong>4B–32B</strong> model coverage</li>
-                            <li><strong>Open source</strong> controller</li>
-                        </ul>
-                        <div class="work-links">
-                            <a href="https://arxiv.org/abs/2607.03333" target="_blank" rel="noopener">Paper</a>
-                            <a href="https://github.com/baihuajun24/spork" target="_blank" rel="noopener">Code</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="work-item">
-                    <div class="work-meta">
-                        <span class="role-tag role-lead">Co-first author</span>
-                        <strong>ICML 2026</strong>
-                        <span>Tencent</span>
-                    </div>
-                    <div class="work-body">
-                        <h3>SpecExit: Accelerating Large Reasoning Model via Speculative Exit</h3>
-                        <p class="authors">Rubing Yang<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Song Liu,
-                            <em>et al.</em></p>
-                        <p>SpecExit predicts future tokens and an early-exit signal from a lightweight draft model,
-                            reducing overthinking without the separate probing overhead used by prior early-exit
-                            systems.</p>
-                        <ul class="result-list" aria-label="SpecExit results">
-                            <li><strong>66%</strong> shorter generation</li>
-                            <li><strong>2.5×</strong> end-to-end speedup</li>
-                            <li><strong>No</strong> accuracy loss</li>
-                        </ul>
-                        <div class="work-links">
-                            <a href="https://arxiv.org/abs/2509.24248" target="_blank" rel="noopener">Paper</a>
-                            <a href="https://zhuanlan.zhihu.com/p/1965057876948129045" target="_blank"
-                                rel="noopener">Report</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="work-item">
-                    <div class="work-meta">
-                        <span class="role-tag role-lead">Co-first author</span>
-                        <strong>ICLR 2026</strong>
-                        <span>AMD</span>
-                    </div>
-                    <div class="work-body">
-                        <h3>PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation</h3>
-                        <p class="authors">Zihao An<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Ziqiong Liu,
-                            Dong Li, Emad Barsoum</p>
-                        <p>PARD adapts one target-independent draft model across a family of target models and predicts
-                            multiple future tokens in parallel, reducing both adaptation and serving cost.</p>
-                        <ul class="result-list" aria-label="PARD results">
-                            <li><strong>3×</strong> training efficiency</li>
-                            <li><strong>3.67×</strong> LLaMA3.1-8B speedup</li>
-                            <li><strong>264.88</strong> tokens/s</li>
-                        </ul>
-                        <div class="work-links">
-                            <a href="https://arxiv.org/abs/2504.18583" target="_blank" rel="noopener">Paper</a>
-                            <a href="https://github.com/AMD-AGI/PARD" target="_blank" rel="noopener">Code</a>
-                        </div>
-                    </div>
-                </article>
-
-                <div class="additional-work">
-                    <h3>Additional publications</h3>
-                    <ul>
-                        <li>
-                            <span><strong>Hierarchical N-Gram speculative decoding for AI PCs</strong><br>First author ·
-                                MobiCom 2025 EdgeFM Workshop</span>
-                            <a href="https://dl.acm.org/doi/10.1145/3737902.3768352" target="_blank"
-                                rel="noopener">Paper</a>
-                        </li>
-                        <li>
-                            <span><strong>FACE: Evaluating Natural Language Generation with Fourier Analysis of
-                                    Cross-Entropy</strong><br>NeurIPS 2023</span>
-                            <a href="https://arxiv.org/abs/2305.10307" target="_blank" rel="noopener">Paper</a>
-                        </li>
-                        <li>
-                            <span><strong>Expressive User Embedding from Churn and Recommendation Multi-Task
-                                    Learning</strong><br>First author · WWW 2023</span>
-                            <a href="https://dl.acm.org/doi/10.1145/3543873.3587306" target="_blank"
-                                rel="noopener">Paper</a>
-                        </li>
-                        <li>
-                            <span><strong>A Corpus for Reasoning about Natural Language Grounded in
-                                    Photographs</strong><br>ACL 2019</span>
-                            <a href="https://aclanthology.org/P19-1644/" target="_blank" rel="noopener">Paper</a>
-                        </li>
-                    </ul>
-                    <p class="equal-note"><sup>*</sup> Equal contribution</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="section-band section-tinted" id="experience">
-            <div class="wrap background-grid">
-                <div>
-                    <div class="section-heading section-heading-small">
-                        <p class="eyebrow">Background</p>
-                        <h2>Research and engineering</h2>
-                    </div>
-                    <ol class="timeline">
-                        <li>
-                            <time>Apr 2026–Present</time>
-                            <div><strong>Meituan · AI Systems</strong><span>Research Intern, agentic inference and
-                                    end-to-end latency · SPORK</span></div>
-                        </li>
-                        <li>
-                            <time>2025–Apr 2026</time>
-                            <div><strong>Tencent · AI Infra</strong><span>Research Intern, inference acceleration</span>
-                            </div>
-                        </li>
-                        <li>
-                            <time>2024–2025</time>
-                            <div><strong>AMD · LLM Inference</strong><span>Research Intern, speculative decoding and AI
-                                    PC inference</span></div>
-                        </li>
-                        <li>
-                            <time>2022–2024</time>
-                            <div><strong>Early-stage startup</strong><span>Founder and Forward Deployed Engineer</span>
-                            </div>
-                        </li>
-                        <li>
-                            <time>2018–2022</time>
-                            <div><strong>News feed systems</strong><span>Machine Learning Engineer</span></div>
-                        </li>
-                    </ol>
-                </div>
-
-                <div class="education-column">
-                    <div class="section-heading section-heading-small">
-                        <p class="eyebrow">Education</p>
-                        <h2>Tsinghua and Cornell</h2>
-                    </div>
-                    <ol class="timeline timeline-education">
-                        <li>
-                            <time>2024–Present</time>
-                            <div><strong>Tsinghua University</strong><span>Ph.D., Computer Science and Technology</span>
-                            </div>
-                        </li>
-                        <li>
-                            <time>2017–2018</time>
-                            <div><strong>Cornell Tech</strong><span>M.Eng., Computer Science</span></div>
-                        </li>
-                        <li>
-                            <time>2013–2017</time>
-                            <div><strong>Cornell University</strong><span>B.A., Mathematics and Computer Science</span>
-                            </div>
-                        </li>
-                    </ol>
-                    <div class="service-note">
-                        <strong>Academic service</strong>
-                        <p>Reviewer for ICML, NeurIPS, COLM, and EMNLP; ICML 2026 Gold Reviewer.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section-band" id="community">
-            <div class="wrap community-grid">
-                <img src="podcast/logo.jpg" alt="MLSYS Feed cover" class="community-cover">
-                <div>
-                    <p class="eyebrow">Research communication</p>
-                    <h2>MLSYS Feed</h2>
-                    <p>I host a Chinese-language, AI-native podcast that retrieves, ranks, and narrates fresh MLSYS
-                        papers through an agentic pipeline. It is also my way of continuously mapping the systems
-                        research landscape beyond my immediate projects.</p>
-                    <div class="text-links">
-                        <a href="podcast/index.html">Browse episodes</a>
-                        <a href="https://mp.weixin.qq.com/s/GocUlCKGfs5Zff7AalEJYg" target="_blank"
-                            rel="noopener">AI agents for research talk</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section-band contact-band" id="contact">
-            <div class="wrap contact-grid">
-                <div>
-                    <p class="eyebrow">Contact</p>
-                    <h2>Let’s talk systems.</h2>
-                    <p>F5, Ziqiang Science &amp; Technology Building<br>Tsinghua University · Beijing, China</p>
-                </div>
-                <div class="contact-actions">
-                    <a class="action action-primary" href="mailto:bhj24@mails.tsinghua.edu.cn">Email Huajun</a>
-                    <a class="action" href="https://github.com/baihuajun24" target="_blank"
-                        rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="wrap footer-row">
-            <p>© 2026 Huajun Bai</p>
-            <a href="index.html">Current homepage</a>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header"><div class="nav-wrap">
+    <a class="site-name" href="#about"><span class="monogram" aria-hidden="true">hb.</span><span>Huajun Bai</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation" data-open-label="Open navigation" data-close-label="Close navigation"><span></span><span></span></button>
+    <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation"><a href="#research">Research</a><a href="#work">Publications</a><a href="#experience">Education</a><a href="#community">Beyond papers</a><a href="#contact">Contact</a><a href="index_zh.html" class="language-link" lang="zh-CN" hreflang="zh-CN">中文 <span aria-hidden="true">↗</span></a></nav>
+  </div></header>
+  <main id="main-content" tabindex="-1">
+    <section class="hero" id="about"><div class="wrap">
+      <div class="hero-grid"><div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>Tsinghua University · Computer Science</p>
+        <h1>Huajun Bai <span class="name-secondary" lang="zh-CN">白华君</span></h1>
+        <p class="role">Ph.D. student · AI systems researcher</p>
+        <p class="hero-thesis">Efficient inference for<br>language models <span>&amp; agents.</span></p>
+        <div class="hero-intro"><p>I work on <strong>speculative decoding</strong>, <strong>efficient reasoning</strong>, and <strong>agentic inference</strong>—connecting algorithm design with the systems that run it.</p>
+        <p>At Tsinghua, I am advised by <strong>Prof. Jiwu Shu</strong> in the <a href="https://storage.cs.tsinghua.edu.cn/" target="_blank" rel="noopener">Storage Research Group</a>.</p></div>
+        <div class="hero-actions"><a class="button button-primary" href="#work">Explore my work <span aria-hidden="true">↓</span></a><a class="button" href="mailto:bhj24@mails.tsinghua.edu.cn">Get in touch <span aria-hidden="true">↗</span></a></div>
+        <div class="profile-links" aria-label="Academic and professional profiles"><a href="https://scholar.google.com/citations?user=bn5nR50AAAAJ" target="_blank" rel="noopener">Google Scholar ↗</a><a href="https://github.com/baihuajun24" target="_blank" rel="noopener">GitHub ↗</a><a href="https://www.linkedin.com/in/huajun-bai-041274a2/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+      </div><figure class="portrait"><img src="assets/profile/profile.JPG" width="800" height="1066" fetchpriority="high" alt="Portrait of Huajun Bai"><figcaption>Tsinghua University<span>Beijing, China</span></figcaption></figure></div>
+      <div class="selected-strip"><span>Selected work</span><a href="#spork"><strong>SPORK</strong><span>arXiv ’26</span></a><a href="#specexit"><strong>SpecExit</strong><span>ICML ’26</span></a><a href="#pard"><strong>PARD</strong><span>ICLR ’26</span></a></div>
+    </div></section>
+    <section class="research section" id="research"><div class="wrap">
+      <div class="section-heading"><p class="eyebrow">01 / Research</p><h2>A systems view of inference.</h2><p>From individual tokens to multi-step agents, I study where inference spends time and how to reduce that cost. Three complementary lines of work connect this agenda.</p></div>
+      <ol class="direction-grid"><li><span class="direction-index">01</span><p class="direction-cost">Token generation</p><h3>Draft more efficiently</h3><p>Parallel drafting with a reusable, low-cost draft model.</p><a href="#pard">PARD <span aria-hidden="true">↗</span></a></li><li><span class="direction-index">02</span><p class="direction-cost">Model reasoning</p><h3>Avoid redundant reasoning</h3><p>Use the draft model’s own signals to guide when reasoning can stop.</p><a href="#specexit">SpecExit <span aria-hidden="true">↗</span></a></li><li><span class="direction-index">03</span><p class="direction-cost">Agent execution</p><h3>Overlap reasoning and tools</h3><p>Anticipate tool calls so useful work can begin before reasoning ends.</p><a href="#spork">SPORK <span aria-hidden="true">↗</span></a></li></ol>
+    </div></section>
+    <section class="section publications-section" id="work"><div class="wrap">
+      <div class="section-heading heading-row"><div><p class="eyebrow">02 / Selected publications</p><h2>Ideas, implementations, evidence.</h2></div><a class="section-link" href="https://scholar.google.com/citations?user=bn5nR50AAAAJ" target="_blank" rel="noopener">Google Scholar ↗</a></div>
+      <article class="publication" id="spork">
+        <div class="pub-identity"><p class="pub-name">SPORK</p><span class="venue">Preprint · 2026</span><p class="author-role">First author</p></div>
+        <div class="pub-body"><h3><a href="https://arxiv.org/abs/2607.03333" target="_blank" rel="noopener">Self-Speculative Forking to Accelerate Agentic LLM Inference</a></h3><p class="authors"><strong>Huajun Bai</strong>, Weiwei Lv, Huichuan Zheng, Youyou Lu, Jiwu Shu</p><p class="pub-description">A training-free controller that anticipates an agent’s tool call and starts execution while reasoning continues. Shared prefixes keep speculation lightweight; verification determines whether to reuse the result or fall back.</p>
+          <div class="text-links"><a href="https://arxiv.org/abs/2607.03333" target="_blank" rel="noopener">Paper <span aria-hidden="true">↗</span></a><a href="https://github.com/baihuajun24/spork" target="_blank" rel="noopener">Code <span aria-hidden="true">↗</span></a></div></div>
+        <div class="pub-result"><strong>18%</strong><span class="metric-label">lower P95 latency</span><p>Qwen3-32B · GAIA<br>131.9 → 108.1 seconds</p></div>
+      </article><article class="publication" id="specexit">
+        <div class="pub-identity"><p class="pub-name">SpecExit</p><span class="venue">ICML 2026</span><p class="author-role">Co-first author</p></div>
+        <div class="pub-body"><h3><a href="https://proceedings.mlr.press/v306/yang26a.html" target="_blank" rel="noopener">Accelerating Large Reasoning Model via Speculative Exit</a></h3><p class="authors">Rubing Yang<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Song Liu, <em>et al.</em></p><p class="pub-description">Uses draft-model hidden states to predict an early-exit signal alongside future tokens, reducing redundant reasoning without a separate probe. The evaluation measures the resulting latency–accuracy tradeoff.</p>
+          <div class="text-links"><a href="https://proceedings.mlr.press/v306/yang26a.html" target="_blank" rel="noopener">Paper <span aria-hidden="true">↗</span></a><a href="https://github.com/Tencent/AngelSlim" target="_blank" rel="noopener">Code <span aria-hidden="true">↗</span></a></div></div>
+        <div class="pub-result"><strong>2.5×</strong><span class="metric-label">end-to-end speedup, up to</span><p>Relative to the speculative<br>decoding baseline</p></div>
+      </article><article class="publication" id="pard">
+        <div class="pub-identity"><p class="pub-name">PARD</p><span class="venue">ICLR 2026</span><p class="author-role">Co-first author</p></div>
+        <div class="pub-body"><h3><a href="https://arxiv.org/abs/2504.18583" target="_blank" rel="noopener">Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation</a></h3><p class="authors">Zihao An<sup>*</sup>, <strong>Huajun Bai</strong><sup>*</sup>, Ziqiong Liu, Dong Li, Emad Barsoum</p><p class="pub-description">Adapts a small model to draft multiple future tokens in parallel. A target-independent draft can be reused across a family of target models, reducing the cost of adaptation and token generation.</p>
+          <div class="text-links"><a href="https://arxiv.org/abs/2504.18583" target="_blank" rel="noopener">Paper <span aria-hidden="true">↗</span></a><a href="https://github.com/AMD-AGI/PARD" target="_blank" rel="noopener">Code <span aria-hidden="true">↗</span></a></div></div>
+        <div class="pub-result"><strong>264.88</strong><span class="metric-label">tokens / second</span><p>LLaMA3.1-8B · HumanEval<br>vLLM · A100-40GB</p></div>
+      </article>
+      <p class="evaluation-note">Results are reported in the linked papers under the configurations shown; they are not cross-paper comparisons. * Equal contribution.</p>
+      <details class="additional-work"><summary>More publications <span>2019–2025 <span aria-hidden="true">+</span></span></summary><ul><li><span class="other-venue">MobiCom 2025<br>EdgeFM Workshop</span><div><a href="https://dl.acm.org/doi/10.1145/3737902.3768352" target="_blank" rel="noopener">Hierarchical N-Gram speculative decoding for AI PCs <span aria-hidden="true">↗</span></a><small>First author</small></div></li><li><span class="other-venue">NeurIPS 2023</span><div><a href="https://arxiv.org/abs/2305.10307" target="_blank" rel="noopener">FACE: Evaluating Natural Language Generation with Fourier Analysis of Cross-Entropy <span aria-hidden="true">↗</span></a></div></li><li><span class="other-venue">WWW 2023</span><div><a href="https://dl.acm.org/doi/10.1145/3543873.3587306" target="_blank" rel="noopener">Expressive User Embedding from Churn and Recommendation Multi-Task Learning <span aria-hidden="true">↗</span></a><small>First author</small></div></li><li><span class="other-venue">ACL 2019</span><div><a href="https://aclanthology.org/P19-1644/" target="_blank" rel="noopener">A Corpus for Reasoning about Natural Language Grounded in Photographs <span aria-hidden="true">↗</span></a></div></li></ul></details>
+    </div></section>
+    <section class="section education-section" id="experience"><div class="wrap background-grid">
+      <div><div class="section-heading"><p class="eyebrow">03 / Education</p><h2>Academic background</h2></div><ol class="timeline"><li><span class="timeline-date">2024–Present</span><div><h3>Tsinghua University</h3><p>Ph.D. student, Computer Science and Technology</p></div></li><li><span class="timeline-date">2017–2018</span><div><h3>Cornell Tech</h3><p>M.Eng., Computer Science</p></div></li><li><span class="timeline-date">2013–2017</span><div><h3>Cornell University</h3><p>B.A., Mathematics and Computer Science</p></div></li></ol></div>
+      <aside class="service-panel"><p class="eyebrow">Academic service</p><h3>Contributing to the research community.</h3><p>Reviewer for ICML, NeurIPS, COLM, and EMNLP.</p><div class="service-award"><span aria-hidden="true">✧</span><div><strong>ICML 2026</strong><span>Gold Reviewer</span></div></div></aside>
+    </div></section>
+    <section class="section community-section" id="community"><div class="wrap">
+      <p class="eyebrow">04 / Beyond papers</p><div class="community-grid"><div class="community-copy"><h2>MLSYS Feed<span class="subheading">Following the field, out loud.</span></h2><p>I host a Chinese-language podcast on machine learning systems. An agentic pipeline helps retrieve, rank, and narrate research papers—a way to explore ideas beyond my own projects.</p><div class="text-links"><a href="podcast/">Browse episodes ↗</a><a href="https://mp.weixin.qq.com/s/GocUlCKGfs5Zff7AalEJYg" target="_blank" rel="noopener">Talk: AI agents for research ↗</a></div></div><a class="podcast-art" href="podcast/" aria-label="Open MLSYS Feed podcast"><img src="podcast/logo.jpg" width="180" height="180" loading="lazy" alt="MLSYS Feed"></a></div>
+      <div class="episode-picks"><span>From the archive</span><a href="podcast/#mlsys-feed-2026-07-03">KV cache & agent memory <span aria-hidden="true">↗</span></a><a href="podcast/#mlsys-feed-2026-07-02">The token cost of long reasoning <span aria-hidden="true">↗</span></a></div>
+    </div></section>
+    <section class="contact-section" id="contact"><div class="wrap contact-grid"><div><p class="eyebrow">Contact</p><h2>Let’s talk systems.</h2><p>F5, Ziqiang Science &amp; Technology Building<br>Tsinghua University · Beijing, China</p></div><a class="email-link" href="mailto:bhj24@mails.tsinghua.edu.cn">bhj24@mails.tsinghua.edu.cn <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+  <footer><div class="wrap footer-row"><p>© 2026 Huajun Bai <span>· Updated October 2026</span></p><a href="#about">Back to top ↑</a></div></footer>
 </body>
-
 </html>
