@@ -11,48 +11,28 @@ The agent working here owns RSS publishing, GitHub Pages deployment checks, and 
 - Public feed URL: `https://baihuajun24.github.io/podcast/feed.xml`
 - Public landing page: `https://baihuajun24.github.io/podcast/`
 - Cover image: `https://baihuajun24.github.io/podcast/logo.jpg`
-- Local repo: `/Users/huajun/Documents/baihuajun24.github.io`
-- Local podcast directory: `/Users/huajun/Documents/baihuajun24.github.io/podcast`
+- Local repo: `/Users/baihuajun/Documents/baihuajun24.github.io`
+- Local podcast directory: `/Users/baihuajun/Documents/baihuajun24.github.io/podcast`
 
 ## Role
 
-Act as the publishing and RSS operations agent.
+Publishing is automated from the mini-genrec repo (since 2026-11-13):
+`tools/publish_to_pages.py` there runs on every podcast kickoff firing (Tue–Sat
+10:30/11:30/12:30 BJT). For every episode that is **public on Xiaoyuzhou** — daily
+episodes, specials and weeklies alike — it adds one `<item>` to `podcast/feed.xml`
+(newest first), bumps `lastBuildDate`, regenerates `podcast/episodes.js`, copies the
+notes to `podcast/MMDD_show_notes_meta_YYYYMMDD.md`, commits only those files from a
+dedicated clone and pushes. Run it by hand from mini-genrec with `--dry-run` to preview.
 
-When given new audio and notes:
+**No MP3 is published to the website any more** (PI 2026-11-13). New items carry a
+`<link>` to the Xiaoyuzhou episode instead of an `<enclosure>`; the podcast page shows
+a 「在小宇宙收听」 button for them. Xiaoyuzhou hosts the show itself (`SELF_HOSTING`) and
+does not read this feed, so the feed cannot create duplicates there.
 
-1. Upload the MP3 as an asset on the **`audio-archive` GitHub Release** — NOT into this repo.
-   `podcast/audio/*.mp3` is gitignored: a 265 MB checkout was timing out the 10-minute
-   Pages build (2026-08-06), so audio was moved out on 2026-09-02.
-
-   ```bash
-   TOKEN=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill | sed -n 's/^password=//p')
-   RID=380915187   # release id for tag audio-archive
-   curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: audio/mpeg" \
-     --data-binary @MMDD-daily-arxiv.mp3 \
-     "https://uploads.github.com/repos/baihuajun24/baihuajun24.github.io/releases/$RID/assets?name=MMDD-daily-arxiv.mp3"
-   ```
-
-   The enclosure URL is then
-   `https://github.com/baihuajun24/baihuajun24.github.io/releases/download/audio-archive/MMDD-daily-arxiv.mp3`.
-   Verified: HEAD returns 200 and range requests return 206, so podcast clients can seek.
-   Never rename or delete an existing asset — live feed URLs depend on the exact filename.
-   Note release assets are served as `application/octet-stream`; clients rely on the RSS
-   `type="audio/mpeg"` attribute, which must stay correct.
-
-   **Specials are still served from this repo** (`podcast/special/*.mp3`, ~75 MB) because
-   their URLs were shared directly with people and would 404 if moved. If they ever move,
-   those old links break — that is a deliberate call, not an oversight.
-2. Add or preserve the source show-notes markdown under `podcast/audio/` or another clear podcast-local path.
-3. Insert a new topmost `<item>` in `podcast/feed.xml`.
-4. Update `lastBuildDate` in `podcast/feed.xml`. The landing page `podcast/index.html` renders the episode list from `feed.xml` client-side, so it needs no per-episode edits — but regenerate its offline snapshot `podcast/episodes.js`:
-
-   ```bash
-   node -e "const fs=require('fs');fs.writeFileSync('podcast/episodes.js','// Auto-generated snapshot of feed.xml so the page renders without fetch (e.g. file://).\n// Regenerate after each publish — see podcast/AGENTS.md.\nwindow.MLSYS_FEED_XML='+JSON.stringify(fs.readFileSync('podcast/feed.xml','utf8'))+';\n')"
-   ```
-
-5. Validate the XML.
-6. Commit and push the update to GitHub Pages.
-7. Verify the public feed and MP3 URLs after Pages cache/deployment catches up.
+Existing audio stays where it is, because live URLs depend on it:
+- episodes up to 0911: assets on the `audio-archive` GitHub Release
+  (never rename or delete one);
+- `podcast/special/*.mp3`: in git, because their URLs were shared directly.
 
 ## Episode Conventions
 
@@ -88,67 +68,41 @@ Use this shape for each episode:
       <description><![CDATA[...show notes markdown...]]></description>
       <content:encoded><![CDATA[...show notes markdown...]]></content:encoded>
       <pubDate>Fri, 05 Jun 2026 00:30:00 GMT</pubDate>
-      <guid isPermaLink="false">mlsys-feed-2026-06-05</guid>
-      <enclosure url="https://baihuajun24.github.io/podcast/audio/0605-daily-arxiv.mp3" length="9421868" type="audio/mpeg" />
+      <guid isPermaLink="false">mlsys-feed-2026-06-05</guid>   <!-- specials: -special, weeklies: -weekly -->
+      <link>https://www.xiaoyuzhoufm.com/episode/&lt;eid&gt;</link>
       <itunes:duration>09:48</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
 ```
 
-Set `length` from the actual MP3 byte size:
-
-```bash
-stat -f '%z' podcast/audio/0605-daily-arxiv.mp3
-```
-
-Keep `itunes:duration` aligned with the notes or audio metadata.
+`itunes:duration` is the floored Xiaoyuzhou duration; `pubDate` is the actual public time in GMT.
 
 ## Validation
 
-Before committing:
+The script checks well-formedness before committing. By hand:
 
 ```bash
 xmllint --noout podcast/feed.xml
-git diff --stat
-git diff -- podcast/feed.xml
+curl -fsSL https://baihuajun24.github.io/podcast/feed.xml | grep -n "mlsys-feed-2026-06-05"
 ```
 
-After pushing:
-
-```bash
-curl -fsSL https://baihuajun24.github.io/podcast/feed.xml | rg -n "0605|mlsys-feed-2026-06-05|0605-daily-arxiv"
-curl -I -L https://baihuajun24.github.io/podcast/audio/0605-daily-arxiv.mp3
-```
-
-GitHub Pages may serve the previous version for a minute or two. If the raw GitHub URL is updated but Pages is stale, wait and poll again.
+GitHub Pages may serve the previous version for a minute or two.
 
 ## Xiaoyuzhou Notes
 
-Xiaoyuzhou imports one program from the submitted RSS feed URL.
+The program on Xiaoyuzhou is self-hosted (`syncMode: SELF_HOSTING`): episodes are uploaded
+there directly from mini-genrec, and Xiaoyuzhou does not read this RSS feed. The feed
+only drives the website's podcast page and any RSS readers.
 
-- The `<channel>` metadata identifies the program.
-- Each `<item>` identifies an episode.
-- The `<guid>` is the episode identity.
-- The `<enclosure>` URL is the audio file Xiaoyuzhou fetches.
+## Manual edits
 
-After Xiaoyuzhou approves the RSS verification request, publishing a new episode means updating this RSS feed and pushing GitHub Pages. If Xiaoyuzhou does not show the episode immediately, look for a manual sync button in the creator center or wait for its polling interval.
-
-Do not rely on Xiaoyuzhou private upload APIs unless the user explicitly asks to experiment with browser automation. RSS publishing is the safer default workflow.
-
-## Git Workflow
-
-Work from:
+Hand edits to the feed are still fine (the script dedups by Xiaoyuzhou `eid` in `<link>`).
+Work from `/Users/baihuajun/Documents/baihuajun24.github.io`, stage only the publishing
+files (`podcast/feed.xml`, `podcast/episodes.js`, the notes file), and regenerate
+`episodes.js` with:
 
 ```bash
-cd /Users/huajun/Documents/baihuajun24.github.io
+node -e "const fs=require('fs');fs.writeFileSync('podcast/episodes.js','// Auto-generated snapshot of feed.xml so the page renders without fetch (e.g. file://).\n// Regenerate after each publish — see podcast/AGENTS.md.\nwindow.MLSYS_FEED_XML='+JSON.stringify(fs.readFileSync('podcast/feed.xml','utf8'))+';\n')"
 ```
 
-Commit focused publishing changes:
-
-```bash
-git add podcast/feed.xml podcast/episodes.js podcast/audio/...mp3 podcast/audio/...md
-git commit -m "Add 0606 MLSYS feed episode"
-git push origin main
-```
-
-Do not revert unrelated user changes. If the worktree is dirty, inspect the changed files and only stage files that belong to the podcast publish operation.
+Do not revert unrelated user changes; the worktree often holds unrelated WIP.
