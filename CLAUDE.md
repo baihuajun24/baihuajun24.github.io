@@ -9,7 +9,8 @@ Personal academic homepage + MLSYS Feed podcast host, published via GitHub Pages
 ## Structure
 
 - `index.html` / `index_zh.html` — English and Chinese homepages. Keep them in sync when editing content: every content change applies to both.
-- `style.css` — shared by the homepages AND `podcast/index.html`. Layout changes here affect all pages.
+- `academic.css` — the homepages' stylesheet (linked with a `?v=YYYYMMDD` cache-buster; bump it in both homepages when the CSS changes).
+- `style.css` — used only by `podcast/index.html` and `card.html`.
 - `podcast/index.html` — renders the episode list client-side from `feed.xml`; needs no per-episode edits.
 - `podcast/episodes.js` — auto-generated snapshot of `feed.xml` (fallback when `fetch` is unavailable, e.g. `file://`). Regenerate after every feed change (command in `podcast/AGENTS.md`).
 - `podcast/audio/` — episode MP3s and show-notes markdown.
@@ -55,13 +56,9 @@ curl -fsSL https://baihuajun24.github.io/ | grep -n "<something from the new cha
 
 Note: `gh` CLI is NOT installed on this machine — use `curl` against the GitHub API.
 
-## Hosting MP3s on GitHub Pages
+## Where podcast audio lives
 
-Fine at current scale, with known ceilings:
-
-- Per-file hard limit 100 MB (episodes are ~5–10 MB — no issue).
-- Repo/site size: ~1 GB recommended, 5 GB hard. Audio is ~73 MB as of June 2026; daily ~9 MB episodes reach 1 GB in roughly 3–4 months of daily publishing.
-- Bandwidth: 100 GB/month soft limit — plenty for a small audience.
-- Git history never shrinks: deleting old MP3s does not reclaim repo size without history rewriting, which would break clones.
-
-When approaching ~1 GB, move audio to external object storage (e.g. Cloudflare R2, free egress) and point `<enclosure>` URLs there — GUIDs stay stable, so podcast platforms won't duplicate episodes. New episodes can switch immediately; old enclosure URLs should keep working.
+- Daily/regular episodes: assets on the `audio-archive` GitHub Release (not in git). A 265 MB checkout timed out the 10-minute Pages build (2026-08-06), so `podcast/audio/*.mp3` is gitignored. Release assets do not count toward the Pages build or repo size; per-file limit 2 GB; range requests work. Upload steps: `podcast/AGENTS.md`.
+- `podcast/special/*.mp3` (~75 MB) stay in git only because their URLs were shared directly.
+- Git history never shrinks: committing MP3s again would re-bloat every clone and the Pages build.
+- If traffic ever outgrows GitHub, move enclosures to object storage (e.g. Cloudflare R2, free egress). GUIDs stay stable, so podcast apps won't duplicate episodes.

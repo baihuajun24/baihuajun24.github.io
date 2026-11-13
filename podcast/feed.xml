@@ -10,7 +10,7 @@
     <description><![CDATA[AI Native 信息类播客推送，arxiv 论文检索 + 基于研究兴趣的推荐 + 生成理由]]></description>
     <language>en-us</language>
     <copyright>Copyright 2026 小白超 AI算</copyright>
-    <lastBuildDate>Fri, 11 Sep 2026 00:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 13 Nov 2026 00:30:00 GMT</lastBuildDate>
     <image>
       <url>https://baihuajun24.github.io/podcast/logo.jpg</url>
       <title>MLSYS Feed</title>
@@ -21,6 +21,1626 @@
     <itunes:image href="https://baihuajun24.github.io/podcast/logo.jpg" />
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
+    <item>
+      <title>1113 MLSYS 特辑 · 上下文太长：分层存，还是压成向量？</title>
+      <description><![CDATA[# 1113 MLSYS 特辑 · 上下文太长：分层存，还是压成向量？
+
+## 评论
+
+长程 Agent 的上下文越积越长，这些状态该怎么放？三篇新论文给出两条路：两篇保留全量状态，只改变它放在哪一层、留哪几个恢复点；一篇把工具返回压成一百多个连续向量。判断走哪条路，先问这些内容以后还会不会被原样用到。
+
+## 本期重点
+
+**HiState**（加州大学圣地亚哥分校）针对注意力层加循环层的混合模型。注意力缓存按 token 存，可以截断复用；循环状态是整段前缀的摘要，只能从留过检查点的位置恢复。普通对话只往后追加，在每轮结尾留一个检查点就够了；Agent 会把长消息从中间截短，也会退回某一步改掉输入再重跑，复用点于是落在没有检查点的位置。把检查点打密又会挤占注意力缓存：论文的例子是 32K token 上下文、每 1,024 个 token 一个检查点，循环状态约 1.6 GB，同一段上下文的 KV 约 1.1 GB。HiState 利用「恢复一次要读全部注意力缓存、却只读一个检查点」的不对称，把快内存留给注意力缓存，历史检查点放到 SSD；按作者的估算，从 SSD 读一个检查点只比从内存多约 10 毫秒，而 32K token 的 KV 挪到 SSD 后加载要从 16.8 毫秒涨到 231.5 毫秒。此外还有自适应的检查点间隔和把两类状态统一排序的淘汰策略。在 vLLM 上实现、回放 Weka 与 TraceLab 两份公开的编程 Agent 轨迹（Qwen3.5-9B，单张 H100）：相对只在轮次边界留检查点、缓存只在显卡上的 vLLM-Marconi，p99 首 token 延迟加速最多 5.73 倍，相对 SGLang-HiCache 最多 5.44 倍；相对同样使用内存和硬盘的 vLLM 扩展基线，复用敏感请求的平均首 token 延迟在 Weka 上从 2.66 秒降到 1.29 秒。
+
+**Adaptive DHiSparse**（Umans AI）面向稀疏注意力的长上下文模型：每个查询先由索引器从历史里选出一小部分条目，只对它们做注意力。前作 HiSparse 把完整历史放在主机内存，显卡只留固定大小的热缓存，缺的条目按需取回。这一篇补了两个缺口。其一，驻留量随负载伸缩：只保护一个很小的必需工作集，显存有富余时多留历史，别的请求需要时收回；负载阶跃实验里，低负载时需要回主机取的条目从 14.2% 降到 1.4%。其二，让 DFlash2、DSpark 这类并行草稿的投机解码在分层缓存上工作：一轮验证里的多个查询合并取数，草稿 KV 只保留一个固定窗口，验证暂存跨层复用，每个会话只多占 0.060 GiB 显存。100K 上下文下，每个会话必须驻留的显存是 0.432 GiB，全量驻留是 4.444 GiB。GLM-5.3、100K 上下文、128 并发时，每张解码显卡每秒输出 793 个 token，是 HiSparse 的 1.45 倍、不开投机解码时的 1.27 倍；按 HiSparse 的延迟上限来卡，可承载的并发最多是 4 倍。并发很低、历史全部放得进显存时，全量驻留反而快 5% 到 7%。
+
+**Coca-Cola**（清华大学）质疑「工具返回必须以文本进入上下文」这个默认前提：一个搜索 Agent 走到第四步时，上下文里 96.7% 的 token 是工具返回。它用一个轻量编码器把每次工具返回压成 128 个连续向量，直接放进 Agent 的输入嵌入空间。训练目标不是还原原文，而是让 Agent 读压缩向量时的下一步动作分布贴近读完整原文时的分布；Agent 本身冻结，只训练压缩器，压缩器同时读任务目标和当前的推理状态。在 NQ、TriviaQA、2WikiMultiHopQA、HotpotQA 四个网页搜索问答数据集、两组模型上，总 token 消耗减少 70.01% 到 89.24%，端到端运行时间减少 24.45% 到 55.97%，EM 和 F1 在全部设置里都高于不压缩的 Agent；同样结构改用还原原文训练（ICAE），八组设置里压缩率都更低。
+
+合起来看：分层存放不改变模型看到的内容，赌的是访问有局部性、慢的那一层足够便宜；压成向量省得更多，但信息按当时那一步的决策筛过，丢掉的找不回来，压缩器也是针对特定 Agent 模型训练的。
+
+## 时间线
+
+00:00 开场：同一段上下文，两种放法
+00:41 HiState：混合模型的两类状态
+01:44 Agent 为什么让检查点失效
+02:08 不对称与分层放置
+02:57 HiState 的结果
+03:37 Adaptive DHiSparse：稀疏注意力与前作
+04:37 缺口一：驻留量随负载伸缩
+05:18 缺口二：分层缓存上的投机解码
+05:53 端到端结果与吃亏的场景
+06:42 Coca-Cola：工具返回不必是文本
+07:41 保住下一步动作的训练目标
+08:14 Coca-Cola 的结果
+08:41 集中讨论：两条路各赌什么
+09:15 没回答的问题
+10:24 总结
+
+## 论文与链接
+
+- HiState: Hierarchical Prefix Cache Management for Hybrid LLM Serving in Agentic Workloads（UC San Diego，arXiv 2026-10-30）https://arxiv.org/abs/2610.41508
+- Adaptive DHiSparse: Speculative Decoding over a Load-Adaptive KV Hierarchy（Umans AI，arXiv 2026-10-09）https://arxiv.org/abs/2610.13708
+- Tools Need Not Speak in Text: Latent Context Compression for Agents（Tsinghua AI Agent Group，arXiv 2026-11-04）https://arxiv.org/abs/2611.06500 ；代码 https://github.com/THU-Agent/Coca-cola
+
+## 制作元信息
+
+- 三篇都是 arXiv 预印本，均未声明会议或期刊录用；数字全部取自论文 v1 正文。
+- HiState 的 5.73 倍对比的是缓存只在显卡上的基线；仅靠把缓存卸载到内存和硬盘，尾延迟就已大幅下降。复用敏感请求约占全部请求的 1%（TraceLab 4,791 个请求中 46 个），p50 首 token 延迟与使用硬盘的基线大致持平、在 Weka 上略有回退。实验只用了一个模型、一张显卡；使用内存和硬盘的 vLLM 基线是作者自己的扩展实现。
+- Adaptive DHiSparse 用的是固定输入长度、预先准备好前缀的闭环压测，不是真实 Agent 轨迹；并发升到 256、会话槽位占满后，投机解码不再增加输出（826 对 823 token/s）；验证块大小是按并发手工设定的。节目里的「自适应分层缓存」是我们的口头简称。
+- Coca-Cola 只在网页搜索问答上验证；代码执行、文件读取这类返回细节之后还会被引用的工具，论文没有测。压缩器需要访问 Agent 的输入嵌入层并针对该模型训练。
+- 节目里「连续向量没有 token 编号，如何与前缀缓存配合」的问题，以及结尾的判断，是主持人的看法，不是论文结论。
+- 声音：Jeff 与 Ada 均为本地 Qwen3-TTS 合成。]]></description>
+      <content:encoded><![CDATA[# 1113 MLSYS 特辑 · 上下文太长：分层存，还是压成向量？
+
+## 评论
+
+长程 Agent 的上下文越积越长，这些状态该怎么放？三篇新论文给出两条路：两篇保留全量状态，只改变它放在哪一层、留哪几个恢复点；一篇把工具返回压成一百多个连续向量。判断走哪条路，先问这些内容以后还会不会被原样用到。
+
+## 本期重点
+
+**HiState**（加州大学圣地亚哥分校）针对注意力层加循环层的混合模型。注意力缓存按 token 存，可以截断复用；循环状态是整段前缀的摘要，只能从留过检查点的位置恢复。普通对话只往后追加，在每轮结尾留一个检查点就够了；Agent 会把长消息从中间截短，也会退回某一步改掉输入再重跑，复用点于是落在没有检查点的位置。把检查点打密又会挤占注意力缓存：论文的例子是 32K token 上下文、每 1,024 个 token 一个检查点，循环状态约 1.6 GB，同一段上下文的 KV 约 1.1 GB。HiState 利用「恢复一次要读全部注意力缓存、却只读一个检查点」的不对称，把快内存留给注意力缓存，历史检查点放到 SSD；按作者的估算，从 SSD 读一个检查点只比从内存多约 10 毫秒，而 32K token 的 KV 挪到 SSD 后加载要从 16.8 毫秒涨到 231.5 毫秒。此外还有自适应的检查点间隔和把两类状态统一排序的淘汰策略。在 vLLM 上实现、回放 Weka 与 TraceLab 两份公开的编程 Agent 轨迹（Qwen3.5-9B，单张 H100）：相对只在轮次边界留检查点、缓存只在显卡上的 vLLM-Marconi，p99 首 token 延迟加速最多 5.73 倍，相对 SGLang-HiCache 最多 5.44 倍；相对同样使用内存和硬盘的 vLLM 扩展基线，复用敏感请求的平均首 token 延迟在 Weka 上从 2.66 秒降到 1.29 秒。
+
+**Adaptive DHiSparse**（Umans AI）面向稀疏注意力的长上下文模型：每个查询先由索引器从历史里选出一小部分条目，只对它们做注意力。前作 HiSparse 把完整历史放在主机内存，显卡只留固定大小的热缓存，缺的条目按需取回。这一篇补了两个缺口。其一，驻留量随负载伸缩：只保护一个很小的必需工作集，显存有富余时多留历史，别的请求需要时收回；负载阶跃实验里，低负载时需要回主机取的条目从 14.2% 降到 1.4%。其二，让 DFlash2、DSpark 这类并行草稿的投机解码在分层缓存上工作：一轮验证里的多个查询合并取数，草稿 KV 只保留一个固定窗口，验证暂存跨层复用，每个会话只多占 0.060 GiB 显存。100K 上下文下，每个会话必须驻留的显存是 0.432 GiB，全量驻留是 4.444 GiB。GLM-5.3、100K 上下文、128 并发时，每张解码显卡每秒输出 793 个 token，是 HiSparse 的 1.45 倍、不开投机解码时的 1.27 倍；按 HiSparse 的延迟上限来卡，可承载的并发最多是 4 倍。并发很低、历史全部放得进显存时，全量驻留反而快 5% 到 7%。
+
+**Coca-Cola**（清华大学）质疑「工具返回必须以文本进入上下文」这个默认前提：一个搜索 Agent 走到第四步时，上下文里 96.7% 的 token 是工具返回。它用一个轻量编码器把每次工具返回压成 128 个连续向量，直接放进 Agent 的输入嵌入空间。训练目标不是还原原文，而是让 Agent 读压缩向量时的下一步动作分布贴近读完整原文时的分布；Agent 本身冻结，只训练压缩器，压缩器同时读任务目标和当前的推理状态。在 NQ、TriviaQA、2WikiMultiHopQA、HotpotQA 四个网页搜索问答数据集、两组模型上，总 token 消耗减少 70.01% 到 89.24%，端到端运行时间减少 24.45% 到 55.97%，EM 和 F1 在全部设置里都高于不压缩的 Agent；同样结构改用还原原文训练（ICAE），八组设置里压缩率都更低。
+
+合起来看：分层存放不改变模型看到的内容，赌的是访问有局部性、慢的那一层足够便宜；压成向量省得更多，但信息按当时那一步的决策筛过，丢掉的找不回来，压缩器也是针对特定 Agent 模型训练的。
+
+## 时间线
+
+00:00 开场：同一段上下文，两种放法
+00:41 HiState：混合模型的两类状态
+01:44 Agent 为什么让检查点失效
+02:08 不对称与分层放置
+02:57 HiState 的结果
+03:37 Adaptive DHiSparse：稀疏注意力与前作
+04:37 缺口一：驻留量随负载伸缩
+05:18 缺口二：分层缓存上的投机解码
+05:53 端到端结果与吃亏的场景
+06:42 Coca-Cola：工具返回不必是文本
+07:41 保住下一步动作的训练目标
+08:14 Coca-Cola 的结果
+08:41 集中讨论：两条路各赌什么
+09:15 没回答的问题
+10:24 总结
+
+## 论文与链接
+
+- HiState: Hierarchical Prefix Cache Management for Hybrid LLM Serving in Agentic Workloads（UC San Diego，arXiv 2026-10-30）https://arxiv.org/abs/2610.41508
+- Adaptive DHiSparse: Speculative Decoding over a Load-Adaptive KV Hierarchy（Umans AI，arXiv 2026-10-09）https://arxiv.org/abs/2610.13708
+- Tools Need Not Speak in Text: Latent Context Compression for Agents（Tsinghua AI Agent Group，arXiv 2026-11-04）https://arxiv.org/abs/2611.06500 ；代码 https://github.com/THU-Agent/Coca-cola
+
+## 制作元信息
+
+- 三篇都是 arXiv 预印本，均未声明会议或期刊录用；数字全部取自论文 v1 正文。
+- HiState 的 5.73 倍对比的是缓存只在显卡上的基线；仅靠把缓存卸载到内存和硬盘，尾延迟就已大幅下降。复用敏感请求约占全部请求的 1%（TraceLab 4,791 个请求中 46 个），p50 首 token 延迟与使用硬盘的基线大致持平、在 Weka 上略有回退。实验只用了一个模型、一张显卡；使用内存和硬盘的 vLLM 基线是作者自己的扩展实现。
+- Adaptive DHiSparse 用的是固定输入长度、预先准备好前缀的闭环压测，不是真实 Agent 轨迹；并发升到 256、会话槽位占满后，投机解码不再增加输出（826 对 823 token/s）；验证块大小是按并发手工设定的。节目里的「自适应分层缓存」是我们的口头简称。
+- Coca-Cola 只在网页搜索问答上验证；代码执行、文件读取这类返回细节之后还会被引用的工具，论文没有测。压缩器需要访问 Agent 的输入嵌入层并针对该模型训练。
+- 节目里「连续向量没有 token 编号，如何与前缀缓存配合」的问题，以及结尾的判断，是主持人的看法，不是论文结论。
+- 声音：Jeff 与 Ada 均为本地 Qwen3-TTS 合成。]]></content:encoded>
+      <pubDate>Fri, 13 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-13-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6af452f214d01a26f8a8619d</link>
+      <itunes:duration>11:00</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1112 MLSYS 特辑 · 只给一个目标，Agent 能把推理调多快？</title>
+      <description><![CDATA[# 1112 MLSYS 特辑 · 只给一个目标，Agent 能把推理调多快？
+
+## 评论
+
+让通用编程 Agent 去优化推理系统本身，围着它搭的专用脚手架还值多少？两篇新论文给出看似相反的答案：一篇拆掉知识库和预设流程，只给一段目标，照样在一批 GPU 算子上超过专家维护的开源库；另一篇靠成本模型和隔离的验收，把投机解码的加速翻了一倍多。合起来的结论是：知识可以越给越少，尺子不能省。
+
+## 本期重点
+
+JustGoal（清华大学、面壁智能等）做了一个对照组：通用 Agent 只拿到目标和约束，自己搭编译、计时和正确性检查的闭环，验收由作者独立复测。在 NVIDIA B200 上，11 个算子、42 种输入形状里，进入比较的 10 个算子有 8 个快过开源库（几何平均 1.14 到 2.34 倍），9 个有公开专用 Agent 算子的里赢了 5 个；注意力前向算子只有开源库的 0.77 倍。同模型对照中，只优化单个形状时，只给目标是 1.18 倍，作者复现的专用框架是 1.12 倍；要求一次覆盖全部负载时，两者变成 0.71 倍和 0.97 倍。换三代模型，只给目标的做法从 0.51 倍涨到 1.18 倍。
+
+SpecPilot（伯克利、普林斯顿、斯坦福、NVIDIA）让 Agent 逐个部署去调投机解码。它保留了三样东西：估算离上限还差多少的成本模型；一个 Agent 能调用但不能修改的控制器，负责成对计时和封存复测；以及把每个输出 token 送回原版引擎核对的检查，用来拦住靠改输出换速度的捷径。单请求下，相对逐 token 生成的加速从 4.46 倍提高到 10.87 倍，批处理从 1.94 倍到 3.93 倍，不需要重新训练。去掉成本模型的单 Agent 循环三轮后只有 1.34 倍，完整系统是 2.13 倍。
+
+## 时间线
+
+- 00:00 开场：脚手架还值多少
+- 00:42 JustGoal：算子优化与只给目标的对照组
+- 01:34 那段目标写了什么，验收怎么做
+- 02:28 结果：对开源库、对专用 Agent 算子
+- 03:18 同模型对照：单个形状与全部负载
+- 04:20 换三代模型之后
+- 04:54 SpecPilot：投机解码为什么要逐个部署调
+- 05:57 怎样防止 Agent 走捷径
+- 07:10 成本模型与单 Agent 对照
+- 08:11 总成绩
+- 08:30 集中讨论：两篇矛盾吗
+- 09:29 没回答的问题
+- 10:30 总结
+
+## 论文与链接
+
+- JustGoal: With Only a Goal, the AI Baseline Is Above the Expert Kernels
+  https://arxiv.org/abs/2610.36434
+- SpecPilot: Autonomous Algorithm Discovery and Systems Optimization for Speculative Decoding
+  https://arxiv.org/abs/2611.02501
+
+## 说明
+
+两篇都是 arXiv 预印本。JustGoal 的专用框架是作者按公开材料复现的，成绩低于原团队发布的算子；实验只在一种显卡上，每个形状只跑一个会话。SpecPilot 的批处理对比对象只有调优过的原版系统；十三轮循环共用 530 个显卡小时。节目中的评价是主持人的解读。本期音频由 AI 语音合成。]]></description>
+      <content:encoded><![CDATA[# 1112 MLSYS 特辑 · 只给一个目标，Agent 能把推理调多快？
+
+## 评论
+
+让通用编程 Agent 去优化推理系统本身，围着它搭的专用脚手架还值多少？两篇新论文给出看似相反的答案：一篇拆掉知识库和预设流程，只给一段目标，照样在一批 GPU 算子上超过专家维护的开源库；另一篇靠成本模型和隔离的验收，把投机解码的加速翻了一倍多。合起来的结论是：知识可以越给越少，尺子不能省。
+
+## 本期重点
+
+JustGoal（清华大学、面壁智能等）做了一个对照组：通用 Agent 只拿到目标和约束，自己搭编译、计时和正确性检查的闭环，验收由作者独立复测。在 NVIDIA B200 上，11 个算子、42 种输入形状里，进入比较的 10 个算子有 8 个快过开源库（几何平均 1.14 到 2.34 倍），9 个有公开专用 Agent 算子的里赢了 5 个；注意力前向算子只有开源库的 0.77 倍。同模型对照中，只优化单个形状时，只给目标是 1.18 倍，作者复现的专用框架是 1.12 倍；要求一次覆盖全部负载时，两者变成 0.71 倍和 0.97 倍。换三代模型，只给目标的做法从 0.51 倍涨到 1.18 倍。
+
+SpecPilot（伯克利、普林斯顿、斯坦福、NVIDIA）让 Agent 逐个部署去调投机解码。它保留了三样东西：估算离上限还差多少的成本模型；一个 Agent 能调用但不能修改的控制器，负责成对计时和封存复测；以及把每个输出 token 送回原版引擎核对的检查，用来拦住靠改输出换速度的捷径。单请求下，相对逐 token 生成的加速从 4.46 倍提高到 10.87 倍，批处理从 1.94 倍到 3.93 倍，不需要重新训练。去掉成本模型的单 Agent 循环三轮后只有 1.34 倍，完整系统是 2.13 倍。
+
+## 时间线
+
+- 00:00 开场：脚手架还值多少
+- 00:42 JustGoal：算子优化与只给目标的对照组
+- 01:34 那段目标写了什么，验收怎么做
+- 02:28 结果：对开源库、对专用 Agent 算子
+- 03:18 同模型对照：单个形状与全部负载
+- 04:20 换三代模型之后
+- 04:54 SpecPilot：投机解码为什么要逐个部署调
+- 05:57 怎样防止 Agent 走捷径
+- 07:10 成本模型与单 Agent 对照
+- 08:11 总成绩
+- 08:30 集中讨论：两篇矛盾吗
+- 09:29 没回答的问题
+- 10:30 总结
+
+## 论文与链接
+
+- JustGoal: With Only a Goal, the AI Baseline Is Above the Expert Kernels
+  https://arxiv.org/abs/2610.36434
+- SpecPilot: Autonomous Algorithm Discovery and Systems Optimization for Speculative Decoding
+  https://arxiv.org/abs/2611.02501
+
+## 说明
+
+两篇都是 arXiv 预印本。JustGoal 的专用框架是作者按公开材料复现的，成绩低于原团队发布的算子；实验只在一种显卡上，每个形状只跑一个会话。SpecPilot 的批处理对比对象只有调优过的原版系统；十三轮循环共用 530 个显卡小时。节目中的评价是主持人的解读。本期音频由 AI 语音合成。]]></content:encoded>
+      <pubDate>Thu, 12 Nov 2026 01:37:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-12-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6af5173e3caef3b52f5471ad</link>
+      <itunes:duration>11:04</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1109 MLSYS 论文简报：预算快用完了，该叫哪个模型</title>
+      <description><![CDATA[预算快用完了，下一次该叫哪个模型？本期三篇论文都把 Agent 的决策放回约束里：一篇管钱，预算会在某次长回答之后突然停机；一篇管环境，仿真 App 必须经得起真实录屏的独立回放；一篇管搭档，不同厂商的 Agent 第一次见面，往往对不上各自默认的暗号。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：预算快用完了，该叫哪个模型
+00:26 预算路由：越线即停机的预算，和偏保守的费用上限
+03:04 Trace to World：规格与实现分离，用真实录屏做差分测试
+05:49 零样本协调：第一次见面的 Agent，为什么对不上暗号
+08:03 引用观察：给草稿模型第二次猜的机会
+08:30 评级和读法
+
+论文与链接
+
+Pathwise-Budgeted LLM Routing: Online Allocation with K-Bit Tail-Cost Learning
+清华大学、新加坡国立大学等
+https://arxiv.org/abs/2611.05835
+说明：策略名为 ADP-HT。五个便宜模型、每题最多四次调用、总预算 0.025 美元时，MATH500 解出 216.2 题，最强已实现基线 Position-aware LinUCB 为 100.8 题；GPQA 为 85.0 对 29.8。五次重复之间波动很大，预算放宽后优势基本消失（MATH500 在 0.30 美元时只领先 0.6 题）。LiveCodeBench 上，预算放宽后 OpenRouter AutoRouter 省钱模式以 1.62 美元解出 732 题，超过本方法。超参数按数据集单独调过。
+
+Trace2World: Reconstructing App Worlds from Real Interaction Traces for Scalable GUI Agent Training
+阿里巴巴 Token Hub、南京大学
+https://arxiv.org/abs/2610.30792
+说明：10 个 App、200 条流程上六项检查全过 91.1%，作者复现的最强基线 GUI-GENESIS-style 为 59.8%，只换掉源录屏验证的自验证对照为 79.1%。100 个配对真机任务上，仿真增益保留约 94%，自验证约 55%（第一阶段策略，3 个种子）。这是样本内检验：评测流程就是构建时回放修复过的录屏，真机任务也都来自训练用过的 App。预印本。
+
+Zero-Shot Coordination among LLM Agents
+牛津大学
+https://arxiv.org/abs/2611.06409
+说明：猫狗灯泡游戏里，代码 Agent 自我配对平均 9.75 分，同模型另一次生成配对 2.41，跨模型配对 -0.51；拆墙的安全回报是 5。加入共享的协调友好定义后，对话 Agent 4×4 跨模型配对全部为 5.00（每格 10 局）。代价是欠协调：可临场建立约定的十轮游戏里，一个模型的自我配对分数从 95.8 跌到 50。没有实跑传统强化学习的协调方法。论文页脚标注 NeurIPS 2026。
+
+引用观察
+
+Give the Drafter a Second Chance to Guess: Parallel Reconsideration for Speculative Decoding
+谷歌、莱斯大学
+https://arxiv.org/abs/2611.05724
+引用了我们的 PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation（arXiv 2504.18583），并认为重猜可以叠加在这类并行草稿方法之上。
+
+本期评级
+
+Trace2World：顶级。规格与实现分离，证据链三篇里最完整。
+ADP-HT：人上人。问题刻画有用，大幅优势只在极紧预算里。
+零样本协调：人上人。诊断干净，解法主要是把模型推向保守。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></description>
+      <content:encoded><![CDATA[预算快用完了，下一次该叫哪个模型？本期三篇论文都把 Agent 的决策放回约束里：一篇管钱，预算会在某次长回答之后突然停机；一篇管环境，仿真 App 必须经得起真实录屏的独立回放；一篇管搭档，不同厂商的 Agent 第一次见面，往往对不上各自默认的暗号。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：预算快用完了，该叫哪个模型
+00:26 预算路由：越线即停机的预算，和偏保守的费用上限
+03:04 Trace to World：规格与实现分离，用真实录屏做差分测试
+05:49 零样本协调：第一次见面的 Agent，为什么对不上暗号
+08:03 引用观察：给草稿模型第二次猜的机会
+08:30 评级和读法
+
+论文与链接
+
+Pathwise-Budgeted LLM Routing: Online Allocation with K-Bit Tail-Cost Learning
+清华大学、新加坡国立大学等
+https://arxiv.org/abs/2611.05835
+说明：策略名为 ADP-HT。五个便宜模型、每题最多四次调用、总预算 0.025 美元时，MATH500 解出 216.2 题，最强已实现基线 Position-aware LinUCB 为 100.8 题；GPQA 为 85.0 对 29.8。五次重复之间波动很大，预算放宽后优势基本消失（MATH500 在 0.30 美元时只领先 0.6 题）。LiveCodeBench 上，预算放宽后 OpenRouter AutoRouter 省钱模式以 1.62 美元解出 732 题，超过本方法。超参数按数据集单独调过。
+
+Trace2World: Reconstructing App Worlds from Real Interaction Traces for Scalable GUI Agent Training
+阿里巴巴 Token Hub、南京大学
+https://arxiv.org/abs/2610.30792
+说明：10 个 App、200 条流程上六项检查全过 91.1%，作者复现的最强基线 GUI-GENESIS-style 为 59.8%，只换掉源录屏验证的自验证对照为 79.1%。100 个配对真机任务上，仿真增益保留约 94%，自验证约 55%（第一阶段策略，3 个种子）。这是样本内检验：评测流程就是构建时回放修复过的录屏，真机任务也都来自训练用过的 App。预印本。
+
+Zero-Shot Coordination among LLM Agents
+牛津大学
+https://arxiv.org/abs/2611.06409
+说明：猫狗灯泡游戏里，代码 Agent 自我配对平均 9.75 分，同模型另一次生成配对 2.41，跨模型配对 -0.51；拆墙的安全回报是 5。加入共享的协调友好定义后，对话 Agent 4×4 跨模型配对全部为 5.00（每格 10 局）。代价是欠协调：可临场建立约定的十轮游戏里，一个模型的自我配对分数从 95.8 跌到 50。没有实跑传统强化学习的协调方法。论文页脚标注 NeurIPS 2026。
+
+引用观察
+
+Give the Drafter a Second Chance to Guess: Parallel Reconsideration for Speculative Decoding
+谷歌、莱斯大学
+https://arxiv.org/abs/2611.05724
+引用了我们的 PARD: Accelerating LLM Inference with Low-Cost PARallel Draft Model Adaptation（arXiv 2504.18583），并认为重猜可以叠加在这类并行草稿方法之上。
+
+本期评级
+
+Trace2World：顶级。规格与实现分离，证据链三篇里最完整。
+ADP-HT：人上人。问题刻画有用，大幅优势只在极紧预算里。
+零样本协调：人上人。诊断干净，解法主要是把模型推向保守。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></content:encoded>
+      <pubDate>Mon, 09 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-09</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6aeecbe75b7c4709bfe265da</link>
+      <itunes:duration>09:33</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1106 MLSYS 特辑 · 模型给模型做手术</title>
+      <description><![CDATA[1106 MLSYS 特辑 · 模型给模型做手术
+
+评论
+"大模型能改权重"，先问改的是谁：这次是 GPT-6 Astra 读写别人家的小模型，最大到 0.8B，"改自己"仍是展望。数学分数暴涨来自拆掉一个停不下来的循环，而不是教会了数学。判断这类工作，先问改的是谁、改掉了什么、靠什么验证。
+
+本期重点
+MIT CSAIL 的博客 Sparks of Weight-Space Programming 让一个通用大模型不经专门训练、不跑梯度下降，直接读写神经网络权重：从权重猜出游戏，从零写出能打砖块的策略，一次修好冲不上坡的小车，并把 Qwen3.5-0.8B 在 MATH-500 上的正确率从 7.9% 提到 48.1%（思考模式，32,768 token 上限）。
+
+作者公开的日志显示：在 1,152 道留出练习题中，原模型本来能写完的 114 道，改前改后都是 93.9%，提升全部来自原本被循环卡死的题；换成不怎么循环的 Gemma 3 270M 就改不动了。我们也肯定作者的公开程度：全部提示、代码、输出和比特级权重差异都可核查，第三方据此重建并重跑得到 51.0%。
+
+时间线
+00:00 开场：头条数字，改的是谁
+00:53 它实际是什么：读、写、修三类例子
+02:03 数学头条的真相：拆掉一个循环
+03:49 之前做过什么：四条研究脉络
+05:49 公认的、新的与争议
+06:55 集中批判：优化还是诊断，能否扩展与验证
+08:05 肯定公开：全部日志与第三方重跑
+08:41 前景：审计、初始化、自我改写与安全
+
+博客与日志
+https://rikiyat.github.io/blog/weight-space-programming/
+https://github.com/RikiyaT/lm_understand-logs
+https://huggingface.co/RikiyaT/Qwen3.5-0.8B-weight-space-programming
+
+相关研究
+Schmidhuber, A self-referential weight matrix (ICANN 1993)
+Irie et al., A Modern Self-Referential Weight Matrix That Learns to Modify Itself https://arxiv.org/abs/2202.05780
+SEAL: Self-Adapting Language Models https://arxiv.org/abs/2506.10943
+HyperNetworks https://arxiv.org/abs/1609.09106
+Text-to-LoRA https://arxiv.org/abs/2506.06105
+Predicting Neural Network Accuracy from Weights https://arxiv.org/abs/2002.11448
+Weight Oracles https://arxiv.org/abs/2610.07334
+ROME https://arxiv.org/abs/2202.05262
+Arditi et al., Refusal in Language Models Is Mediated by a Single Direction https://arxiv.org/abs/2406.11717
+Why Do Reasoning Models Loop? https://arxiv.org/abs/2512.12895
+
+说明
+原始材料是博客与公开日志，不是同行评审论文，作者自称早期结果；每个预算只跑了一次。练习集结果是 Astra 自己的报告。Gemma 跟进实验与 Qwen 的条件不同。文中提到的复现与跨代对比是评论者本人的说法。]]></description>
+      <content:encoded><![CDATA[1106 MLSYS 特辑 · 模型给模型做手术
+
+评论
+"大模型能改权重"，先问改的是谁：这次是 GPT-6 Astra 读写别人家的小模型，最大到 0.8B，"改自己"仍是展望。数学分数暴涨来自拆掉一个停不下来的循环，而不是教会了数学。判断这类工作，先问改的是谁、改掉了什么、靠什么验证。
+
+本期重点
+MIT CSAIL 的博客 Sparks of Weight-Space Programming 让一个通用大模型不经专门训练、不跑梯度下降，直接读写神经网络权重：从权重猜出游戏，从零写出能打砖块的策略，一次修好冲不上坡的小车，并把 Qwen3.5-0.8B 在 MATH-500 上的正确率从 7.9% 提到 48.1%（思考模式，32,768 token 上限）。
+
+作者公开的日志显示：在 1,152 道留出练习题中，原模型本来能写完的 114 道，改前改后都是 93.9%，提升全部来自原本被循环卡死的题；换成不怎么循环的 Gemma 3 270M 就改不动了。我们也肯定作者的公开程度：全部提示、代码、输出和比特级权重差异都可核查，第三方据此重建并重跑得到 51.0%。
+
+时间线
+00:00 开场：头条数字，改的是谁
+00:53 它实际是什么：读、写、修三类例子
+02:03 数学头条的真相：拆掉一个循环
+03:49 之前做过什么：四条研究脉络
+05:49 公认的、新的与争议
+06:55 集中批判：优化还是诊断，能否扩展与验证
+08:05 肯定公开：全部日志与第三方重跑
+08:41 前景：审计、初始化、自我改写与安全
+
+博客与日志
+https://rikiyat.github.io/blog/weight-space-programming/
+https://github.com/RikiyaT/lm_understand-logs
+https://huggingface.co/RikiyaT/Qwen3.5-0.8B-weight-space-programming
+
+相关研究
+Schmidhuber, A self-referential weight matrix (ICANN 1993)
+Irie et al., A Modern Self-Referential Weight Matrix That Learns to Modify Itself https://arxiv.org/abs/2202.05780
+SEAL: Self-Adapting Language Models https://arxiv.org/abs/2506.10943
+HyperNetworks https://arxiv.org/abs/1609.09106
+Text-to-LoRA https://arxiv.org/abs/2506.06105
+Predicting Neural Network Accuracy from Weights https://arxiv.org/abs/2002.11448
+Weight Oracles https://arxiv.org/abs/2610.07334
+ROME https://arxiv.org/abs/2202.05262
+Arditi et al., Refusal in Language Models Is Mediated by a Single Direction https://arxiv.org/abs/2406.11717
+Why Do Reasoning Models Loop? https://arxiv.org/abs/2512.12895
+
+说明
+原始材料是博客与公开日志，不是同行评审论文，作者自称早期结果；每个预算只跑了一次。练习集结果是 Astra 自己的报告。Gemma 跟进实验与 Qwen 的条件不同。文中提到的复现与跨代对比是评论者本人的说法。]]></content:encoded>
+      <pubDate>Fri, 06 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-06-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6aec08254e00064246f45706</link>
+      <itunes:duration>09:58</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1105 MLSYS 论文简报：缓存该丢头，还是丢尾</title>
+      <description><![CDATA[内存不够时，KV 缓存该丢头，还是丢尾？本期三篇论文都想让 Agent 少做重复工作：Penelope 改变 KV 淘汰的位置和粒度，SWE-Trail 用历史决定在哪里多采集训练轨迹，Exo 让 Agent 在任务运行中修改自己的 harness。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：丢头还是丢尾
+00:25 Penelope：重算为什么越靠后越贵，以及消融表里的答案
+03:12 SWE-Trail：历史留给采集器，不进 Agent 的上下文
+05:14 Exo：边干活边改自己，以及守护层到底守什么
+07:25 评级和读法
+
+论文与链接
+
+Rethinking KV Cache Eviction for Agentic LLM Serving
+弗吉尼亚理工大学、加州大学默塞德分校等
+https://arxiv.org/abs/2611.00391
+说明：和 SGLang 比，平均首 token 时间 6.7 秒降到 2.7 秒，是并发扫描的峰值，缓存为人为封顶。消融显示，只改成块级释放（仍从尾部）即减少 45%，节点级下只改位置减少 6%，完整方案 63%。相对块级尾部淘汰，净位置效应为 12% 到 29%。工具等待占主导的负载上，任务完成时间约缩短 2%。没有运行先前的同类策略。
+
+SWE-Trail: History-Guided Trajectory Collection for Coding Agent Training
+康涅狄格大学、蚂蚁集团
+https://arxiv.org/abs/2611.02074
+说明：相对独立采样提升 2.33 和 1.60 个百分点。同流程不用历史的差距为 2.22 和 0.87，95% 置信区间都跨零。每种条件只采集一批语料，重复训练三次。“最多多 3.7% token”不含先跑五条历史的成本。
+
+Exo: A Harness Architecture for Runtime Self-Improvement
+加州大学伯克利分校等
+https://arxiv.org/abs/2611.00463
+说明：AppWorld 留出任务每题成本 0.141 美元对 0.359 美元，通过率都是 96.9%，含学习总成本低 43%。留出任务是同一批场景的其他变体。游戏实验每种条件只跑一次，没有同起点对照。默认守护层只检查构建是否成功。重复度低的任务上比 Codex 和 Pi 更贵。
+
+本期评级
+
+Penelope：人上人。想法清楚，但收益大头来自块级释放。
+SWE-Trail：人上人。设计干净，历史的增量还没被统计证实。
+Exo：人上人。架构清楚，头条数字的对照不够干净。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></description>
+      <content:encoded><![CDATA[内存不够时，KV 缓存该丢头，还是丢尾？本期三篇论文都想让 Agent 少做重复工作：Penelope 改变 KV 淘汰的位置和粒度，SWE-Trail 用历史决定在哪里多采集训练轨迹，Exo 让 Agent 在任务运行中修改自己的 harness。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：丢头还是丢尾
+00:25 Penelope：重算为什么越靠后越贵，以及消融表里的答案
+03:12 SWE-Trail：历史留给采集器，不进 Agent 的上下文
+05:14 Exo：边干活边改自己，以及守护层到底守什么
+07:25 评级和读法
+
+论文与链接
+
+Rethinking KV Cache Eviction for Agentic LLM Serving
+弗吉尼亚理工大学、加州大学默塞德分校等
+https://arxiv.org/abs/2611.00391
+说明：和 SGLang 比，平均首 token 时间 6.7 秒降到 2.7 秒，是并发扫描的峰值，缓存为人为封顶。消融显示，只改成块级释放（仍从尾部）即减少 45%，节点级下只改位置减少 6%，完整方案 63%。相对块级尾部淘汰，净位置效应为 12% 到 29%。工具等待占主导的负载上，任务完成时间约缩短 2%。没有运行先前的同类策略。
+
+SWE-Trail: History-Guided Trajectory Collection for Coding Agent Training
+康涅狄格大学、蚂蚁集团
+https://arxiv.org/abs/2611.02074
+说明：相对独立采样提升 2.33 和 1.60 个百分点。同流程不用历史的差距为 2.22 和 0.87，95% 置信区间都跨零。每种条件只采集一批语料，重复训练三次。“最多多 3.7% token”不含先跑五条历史的成本。
+
+Exo: A Harness Architecture for Runtime Self-Improvement
+加州大学伯克利分校等
+https://arxiv.org/abs/2611.00463
+说明：AppWorld 留出任务每题成本 0.141 美元对 0.359 美元，通过率都是 96.9%，含学习总成本低 43%。留出任务是同一批场景的其他变体。游戏实验每种条件只跑一次，没有同起点对照。默认守护层只检查构建是否成功。重复度低的任务上比 Codex 和 Pi 更贵。
+
+本期评级
+
+Penelope：人上人。想法清楚，但收益大头来自块级释放。
+SWE-Trail：人上人。设计干净，历史的增量还没被统计证实。
+Exo：人上人。架构清楚，头条数字的对照不够干净。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></content:encoded>
+      <pubDate>Thu, 05 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-05</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6aeb541297726cd4675cdfa9</link>
+      <itunes:duration>08:14</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1104 MLSYS 论文简报：算过的上下文，别再算一遍</title>
+      <description><![CDATA[一段上下文，模型已经算过了，怎样才能不再算第二遍？本期分三段讲：存（FlatCake 把 KV 缓存的落盘决策提前到写入时）、传（ACCT 尝试跨规模模型直接转换 KV）和算账（The Physical Cost of Context 区分发送的 token 和真正重算的 token）。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：缓存为什么放不下、用不上、被改坏
+00:29 FlatCake：存储层次在 Agent 负载上哪里失灵，写入时定位置
+03:34 ACCT：跨模型转换 KV，以及摘要和表格之间的差距
+05:55 算账：省 token 为什么可能多算
+07:46 评级和三个问题
+
+论文与链接
+
+FlatCake: A Flat KVCache Storage Architecture for LLM Serving
+复旦大学、北京大学等
+https://arxiv.org/abs/2610.38355
+说明：命中率 94% 对 64% 的对比对象是走主机中转的 Mooncake，它在低负载时命中率为 88%；直读显卡的 Mooncake-GDS 未在这条 trace 上运行，在 Llama 上 16K 打平、64K 差 1.8 倍。评测为单机。
+
+ACCT: Asymmetric Cross-LLM Context Transfer
+清华大学
+https://arxiv.org/abs/2610.42116
+说明：6.5 到 21.2 倍只算转换阶段，前提是上一个模型已算过这段上下文。计入其计算后，约 19K token 时小转大为 1.16 到 3.35 倍，大转小更慢。4 倍压缩下，六个方向在 11 个任务上赢过完整上下文的任务数为 4、4、2、2、1、0。评测均为单提示，没有多轮 Agent 交接。
+
+The Physical Cost of Context: Quality-Constrained Resource Accounting for Coding Agents
+加州大学圣迭戈分校、马萨诸塞大学阿默斯特分校，NeurIPS 2026 Resource-Aware Agentic AI 研讨会
+https://arxiv.org/abs/2610.34763
+说明：100 个 SWE-bench Verified 任务上，只留最近五条观测使 prompt 减少 33.3%，未缓存计算从 10.0k 涨到 70.8k token（增加 608.5%），GPU 能耗代理增加 125.6%，解决数 26 对 29。实验为单机串行，缓存处于最佳工况；该策略没有关缓存的对照。
+
+本期评级
+
+FlatCake：人上人。想法干净，基线还不够硬。
+ACCT：NPC。方向新，但证据撑不起摘要。
+The Physical Cost of Context：人上人。账本清楚，只是工况太理想。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></description>
+      <content:encoded><![CDATA[一段上下文，模型已经算过了，怎样才能不再算第二遍？本期分三段讲：存（FlatCake 把 KV 缓存的落盘决策提前到写入时）、传（ACCT 尝试跨规模模型直接转换 KV）和算账（The Physical Cost of Context 区分发送的 token 和真正重算的 token）。三篇是互补视角，并未共同验证一条完整流程。
+
+时间线
+
+00:00 开场：缓存为什么放不下、用不上、被改坏
+00:29 FlatCake：存储层次在 Agent 负载上哪里失灵，写入时定位置
+03:34 ACCT：跨模型转换 KV，以及摘要和表格之间的差距
+05:55 算账：省 token 为什么可能多算
+07:46 评级和三个问题
+
+论文与链接
+
+FlatCake: A Flat KVCache Storage Architecture for LLM Serving
+复旦大学、北京大学等
+https://arxiv.org/abs/2610.38355
+说明：命中率 94% 对 64% 的对比对象是走主机中转的 Mooncake，它在低负载时命中率为 88%；直读显卡的 Mooncake-GDS 未在这条 trace 上运行，在 Llama 上 16K 打平、64K 差 1.8 倍。评测为单机。
+
+ACCT: Asymmetric Cross-LLM Context Transfer
+清华大学
+https://arxiv.org/abs/2610.42116
+说明：6.5 到 21.2 倍只算转换阶段，前提是上一个模型已算过这段上下文。计入其计算后，约 19K token 时小转大为 1.16 到 3.35 倍，大转小更慢。4 倍压缩下，六个方向在 11 个任务上赢过完整上下文的任务数为 4、4、2、2、1、0。评测均为单提示，没有多轮 Agent 交接。
+
+The Physical Cost of Context: Quality-Constrained Resource Accounting for Coding Agents
+加州大学圣迭戈分校、马萨诸塞大学阿默斯特分校，NeurIPS 2026 Resource-Aware Agentic AI 研讨会
+https://arxiv.org/abs/2610.34763
+说明：100 个 SWE-bench Verified 任务上，只留最近五条观测使 prompt 减少 33.3%，未缓存计算从 10.0k 涨到 70.8k token（增加 608.5%），GPU 能耗代理增加 125.6%，解决数 26 对 29。实验为单机串行，缓存处于最佳工况；该策略没有关缓存的对照。
+
+本期评级
+
+FlatCake：人上人。想法干净，基线还不够硬。
+ACCT：NPC。方向新，但证据撑不起摘要。
+The Physical Cost of Context：人上人。账本清楚，只是工况太理想。
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></content:encoded>
+      <pubDate>Wed, 04 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-04</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ae9e22597726cd4675c3f58</link>
+      <itunes:duration>08:29</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1102 MLSYS 特辑 · GPU 显存满了，为什么算力还在闲着？</title>
+      <description><![CDATA[1102 MLSYS 特辑 · GPU 显存满了，为什么算力还在闲着？
+
+大模型推理卡顿，真的是因为算力不够用吗？在真实的公有云集群监控里，常常出现一个诡异的现象：显存红得发紫，计算核心却在呼呼大睡。
+
+本期特辑聚焦操作系统顶会 ACM SIGOPS ATC 2026 上的三篇重要系统论文（xMaaS、Chorus、ELDR），从生产全景测量、长短请求异构解耦，到混合专家（MoE）局部性感知路由，层层拆解大模型集群中显存容量、访存带宽与算力利用率的错配根源。
+
+【时间线】
+00:00 开场 · 显存红得发紫，计算核心却在呼呼大睡？
+00:48 生产全景测量（xMaaS）· 10 万卡 6 个月实测，算力利用率为何低于 15%？
+02:33 长度偏斜与显存霸凌（Chorus）· 为什么少数长请求会拖垮整体吞吐？
+03:58 双通道与 AMX 救场 · 为什么把长请求迁到 CPU 反而能提速最高 11 倍？
+05:43 混合专家模型（ELDR）· 预填解码解耦下，为什么负载相等不等于延迟相等？
+06:21 专家并集膨胀与局部性 · 活跃专家从 16 增至 128 为何导致延迟暴涨 4.7 倍？
+08:31 宏观串联 · 从容量超售、两车道异构到软件局部性
+09:02 结语 · 分清容量、带宽与算力的三笔账
+
+【本期讨论核心】
+1. 生产集群全景测量（xMaaS，港中大深圳 × 阿里，ATC 2026）
+首个对连续 6 个月、56 个集群、超过 10 万张 GPU 的生产 MaaS 推理平台进行的多层次全景测量。在线负载中，整整 60% 的 GPU 时长，计算核心利用率低于 15%，物理显存占用率却普遍高达 99%。核心症结在于：静态预留的高配缓存池实际占用率常年在 10% 到 20%；海量长尾冷模型变体常驻显存，导致调度器误判显存耗尽不敢准入新请求，算力白白空转。
+
+2. 长短请求解耦与 CPU 救场（Chorus，港科大 × 贝尔实验室 × 阿里，ATC 2026）
+在长度偏斜负载中，极少数长请求霸占了近 90% 的物理显存，每词生成的带宽利用率仅约 38%，导致绝大多数短请求排队雪崩。Chorus 提出双通道解码：GPU 专职预填与短请求解码；长请求判定后一次性整迁至配备 AMX 矩阵硬件加速的分布式 CPU 节点，立即彻底释放 GPU 显存。高压场景下有效吞吐比 SGLang 提升最高 11.4 倍，以长尾请求的轻微让步换取整个集群的顺畅吞吐。
+
+3. MoE 专家局部性解码路由（ELDR，KAIST × 微软研究院，ATC 2026）
+在混合专家模型（MoE）中，解码耗时取决于批次内激活的所有互异专家的并集大小。活跃专家从 16 增至 128 时，MoE 层延迟暴涨 4.7 倍。ELDR 抓住同领域请求专家激活天然重叠（17%–21%）、以及预填激活与解码激活强相关（0.70 到 0.92）的特征，在预填解码交接处提取专家签名，把相似领域的请求共置到同一解码节点。实测在 40 卡集群中将每词生成延迟降低近 14%，且模型输出完全等价。
+
+【一手资料与相关链接】
+- xMaaS: Model-as-a-Service in the Wild: Characterizing Production LLM Inference Clusters at Scale (ATC 2026)
+  开源数据集: https://github.com/alibaba/clusterdata/tree/master/cluster-trace-v2026-maas
+- Chorus: GPU-CPU Cooperative LLM Serving for Length-Skewed Decode (ATC 2026)
+  阿里官方预印本: https://inno-open.oss-accelerate.aliyuncs.com/open/paper/atc26-chorus-gpu.pdf
+- ELDR: Expert-Locality-Aware Decode Routing for PD-Disaggregated MoE Serving (ATC 2026 / arXiv:2607.00466)
+  论文链接: https://arxiv.org/abs/2607.00466
+
+【制作说明】
+面向有系统背景的技术听众，依据公开一手论文制作，双主持 Jeff（uncle_fu）/ Ada（serena）本地 Qwen3-TTS 合成，实测全长 09:51，欢迎在评论区交流讨论！]]></description>
+      <content:encoded><![CDATA[1102 MLSYS 特辑 · GPU 显存满了，为什么算力还在闲着？
+
+大模型推理卡顿，真的是因为算力不够用吗？在真实的公有云集群监控里，常常出现一个诡异的现象：显存红得发紫，计算核心却在呼呼大睡。
+
+本期特辑聚焦操作系统顶会 ACM SIGOPS ATC 2026 上的三篇重要系统论文（xMaaS、Chorus、ELDR），从生产全景测量、长短请求异构解耦，到混合专家（MoE）局部性感知路由，层层拆解大模型集群中显存容量、访存带宽与算力利用率的错配根源。
+
+【时间线】
+00:00 开场 · 显存红得发紫，计算核心却在呼呼大睡？
+00:48 生产全景测量（xMaaS）· 10 万卡 6 个月实测，算力利用率为何低于 15%？
+02:33 长度偏斜与显存霸凌（Chorus）· 为什么少数长请求会拖垮整体吞吐？
+03:58 双通道与 AMX 救场 · 为什么把长请求迁到 CPU 反而能提速最高 11 倍？
+05:43 混合专家模型（ELDR）· 预填解码解耦下，为什么负载相等不等于延迟相等？
+06:21 专家并集膨胀与局部性 · 活跃专家从 16 增至 128 为何导致延迟暴涨 4.7 倍？
+08:31 宏观串联 · 从容量超售、两车道异构到软件局部性
+09:02 结语 · 分清容量、带宽与算力的三笔账
+
+【本期讨论核心】
+1. 生产集群全景测量（xMaaS，港中大深圳 × 阿里，ATC 2026）
+首个对连续 6 个月、56 个集群、超过 10 万张 GPU 的生产 MaaS 推理平台进行的多层次全景测量。在线负载中，整整 60% 的 GPU 时长，计算核心利用率低于 15%，物理显存占用率却普遍高达 99%。核心症结在于：静态预留的高配缓存池实际占用率常年在 10% 到 20%；海量长尾冷模型变体常驻显存，导致调度器误判显存耗尽不敢准入新请求，算力白白空转。
+
+2. 长短请求解耦与 CPU 救场（Chorus，港科大 × 贝尔实验室 × 阿里，ATC 2026）
+在长度偏斜负载中，极少数长请求霸占了近 90% 的物理显存，每词生成的带宽利用率仅约 38%，导致绝大多数短请求排队雪崩。Chorus 提出双通道解码：GPU 专职预填与短请求解码；长请求判定后一次性整迁至配备 AMX 矩阵硬件加速的分布式 CPU 节点，立即彻底释放 GPU 显存。高压场景下有效吞吐比 SGLang 提升最高 11.4 倍，以长尾请求的轻微让步换取整个集群的顺畅吞吐。
+
+3. MoE 专家局部性解码路由（ELDR，KAIST × 微软研究院，ATC 2026）
+在混合专家模型（MoE）中，解码耗时取决于批次内激活的所有互异专家的并集大小。活跃专家从 16 增至 128 时，MoE 层延迟暴涨 4.7 倍。ELDR 抓住同领域请求专家激活天然重叠（17%–21%）、以及预填激活与解码激活强相关（0.70 到 0.92）的特征，在预填解码交接处提取专家签名，把相似领域的请求共置到同一解码节点。实测在 40 卡集群中将每词生成延迟降低近 14%，且模型输出完全等价。
+
+【一手资料与相关链接】
+- xMaaS: Model-as-a-Service in the Wild: Characterizing Production LLM Inference Clusters at Scale (ATC 2026)
+  开源数据集: https://github.com/alibaba/clusterdata/tree/master/cluster-trace-v2026-maas
+- Chorus: GPU-CPU Cooperative LLM Serving for Length-Skewed Decode (ATC 2026)
+  阿里官方预印本: https://inno-open.oss-accelerate.aliyuncs.com/open/paper/atc26-chorus-gpu.pdf
+- ELDR: Expert-Locality-Aware Decode Routing for PD-Disaggregated MoE Serving (ATC 2026 / arXiv:2607.00466)
+  论文链接: https://arxiv.org/abs/2607.00466
+
+【制作说明】
+面向有系统背景的技术听众，依据公开一手论文制作，双主持 Jeff（uncle_fu）/ Ada（serena）本地 Qwen3-TTS 合成，实测全长 09:51，欢迎在评论区交流讨论！]]></content:encoded>
+      <pubDate>Mon, 02 Nov 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-11-02-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ae6981dc96c8942ec155450</link>
+      <itunes:duration>09:51</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1029 MLSYS 论文简报：给 Agent 造训练环境，难在哪？</title>
+      <description><![CDATA[训练 Agent 不只需要更多代码，还需要能执行、能判断、能反复使用的环境。本期从 POSEIDON 的科学工作流任务、Change2Task 的历史变更重建，到 BIRD-RL 的数据库副本与轨迹隔离，讨论训练环境的构造、维护和运行成本。三篇属于互补视角，并未共同验证一条完整流水线；节目数据均为论文作者报告。
+
+论文与链接
+
+POSEIDON: Scaling Training Environments for Scientific Agents from Code Repositories（v1）
+https://arxiv.org/abs/2610.32448v1
+
+Change2Task: From Repository Changes to Executable Coding Agent Tasks and Environments（v2）
+https://arxiv.org/abs/2607.28591v2
+
+BIRD-RL: Scaling Agentic Reinforcement Learning over Stateful Data-Centric Environments（v1）
+https://arxiv.org/abs/2610.29426v1
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></description>
+      <content:encoded><![CDATA[训练 Agent 不只需要更多代码，还需要能执行、能判断、能反复使用的环境。本期从 POSEIDON 的科学工作流任务、Change2Task 的历史变更重建，到 BIRD-RL 的数据库副本与轨迹隔离，讨论训练环境的构造、维护和运行成本。三篇属于互补视角，并未共同验证一条完整流水线；节目数据均为论文作者报告。
+
+论文与链接
+
+POSEIDON: Scaling Training Environments for Scientific Agents from Code Repositories（v1）
+https://arxiv.org/abs/2610.32448v1
+
+Change2Task: From Repository Changes to Executable Coding Agent Tasks and Environments（v2）
+https://arxiv.org/abs/2607.28591v2
+
+BIRD-RL: Scaling Agentic Reinforcement Learning over Stateful Data-Centric Environments（v1）
+https://arxiv.org/abs/2610.29426v1
+
+主持：Jeff、Ada。音频由本地 Qwen3-TTS 生成。]]></content:encoded>
+      <pubDate>Thu, 29 Oct 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-29</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ae1dbe597726cd467592898</link>
+      <itunes:duration>14:29</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1022 MLSYS 特辑 · 模型不换，Agent 如何进化？</title>
+      <description><![CDATA[模型权重不变，智能体还能怎样变好？从一个反复读文件、修改、测试的修 Bug 场景出发，本期讨论执行框架、工具组织与经验积累，能否成为另一条能力提升路径。
+
+本期重点
+SoL-Pi：自动发现执行中的浪费，把降本与质量放在同一张账上。
+Harness²：通过实际试跑和行为对比改善当前交付，为后续任务积累有条件的流程经验。
+Rethinking v4：同样资源，改框架是否优于把任务多试几次？终端任务与长程游戏为什么会呈现不同结果？
+最后集中讨论改进信号、经验复用与搜索成本摊销，再连接缓存复用的系统问题。
+
+时间线
+00:00 模型不换，Agent 还能怎样进化？
+02:05 SoL-Pi：寻找原本不需要发生的推理
+04:10 降本与质量，放进同一本账
+05:09 Harness²：让改流程的经验进入下一项任务
+08:29 Rethinking：改框架，还是把任务再做几次？
+10:12 长程游戏为什么给出不同结果？
+11:32 集中讨论：改进信号、复用与成本摊销
+13:52 总结：改什么、证据何在、是否值得
+
+论文与链接
+SoL-Pi: Recursively Scaling Auto-Research Loops for Efficient Agent Harness（v1）
+https://arxiv.org/abs/2609.20519v1
+
+Harness²: Recursive Agent Harnessing for an Open World（v1）
+https://arxiv.org/abs/2610.14224v1
+
+Rethinking the Evaluation of Harness Evolution for Agents（2026-10-05 v4）
+https://arxiv.org/abs/2607.12227v4
+
+关键口径
+SoL-Pi 完整效率方案的降本伴随平均分回落；Harness² 主实验另有框架编辑模型与试跑投入；Rethinking 的终端比较匹配执行轮数，游戏分数衡量完成与行动效率，并非通过率。三篇不是同一环境下的直接横评。
+
+制作说明
+Jeff／Ada 双人解读，依据公开论文制作，未复现实验。声音由本地 Qwen3-TTS 生成；内容经过来源核查与音频检查。面向有系统背景的 CS 听众，优先讲问题、核心思路与关键证据。]]></description>
+      <content:encoded><![CDATA[模型权重不变，智能体还能怎样变好？从一个反复读文件、修改、测试的修 Bug 场景出发，本期讨论执行框架、工具组织与经验积累，能否成为另一条能力提升路径。
+
+本期重点
+SoL-Pi：自动发现执行中的浪费，把降本与质量放在同一张账上。
+Harness²：通过实际试跑和行为对比改善当前交付，为后续任务积累有条件的流程经验。
+Rethinking v4：同样资源，改框架是否优于把任务多试几次？终端任务与长程游戏为什么会呈现不同结果？
+最后集中讨论改进信号、经验复用与搜索成本摊销，再连接缓存复用的系统问题。
+
+时间线
+00:00 模型不换，Agent 还能怎样进化？
+02:05 SoL-Pi：寻找原本不需要发生的推理
+04:10 降本与质量，放进同一本账
+05:09 Harness²：让改流程的经验进入下一项任务
+08:29 Rethinking：改框架，还是把任务再做几次？
+10:12 长程游戏为什么给出不同结果？
+11:32 集中讨论：改进信号、复用与成本摊销
+13:52 总结：改什么、证据何在、是否值得
+
+论文与链接
+SoL-Pi: Recursively Scaling Auto-Research Loops for Efficient Agent Harness（v1）
+https://arxiv.org/abs/2609.20519v1
+
+Harness²: Recursive Agent Harnessing for an Open World（v1）
+https://arxiv.org/abs/2610.14224v1
+
+Rethinking the Evaluation of Harness Evolution for Agents（2026-10-05 v4）
+https://arxiv.org/abs/2607.12227v4
+
+关键口径
+SoL-Pi 完整效率方案的降本伴随平均分回落；Harness² 主实验另有框架编辑模型与试跑投入；Rethinking 的终端比较匹配执行轮数，游戏分数衡量完成与行动效率，并非通过率。三篇不是同一环境下的直接横评。
+
+制作说明
+Jeff／Ada 双人解读，依据公开论文制作，未复现实验。声音由本地 Qwen3-TTS 生成；内容经过来源核查与音频检查。面向有系统背景的 CS 听众，优先讲问题、核心思路与关键证据。]]></content:encoded>
+      <pubDate>Thu, 22 Oct 2026 00:31:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-22-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ad958d5b381c0fcba19cce8</link>
+      <itunes:duration>14:38</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1021 MLSYS 特辑 · DeepInfer：模型怎样变成高效服务？</title>
+      <description><![CDATA[推理框架的效率，不只取决于算子有多快。DeepInfer 展示的是，计算怎样分工、过去的工作怎样留下，以及新的计算该花在什么地方。
+
+本期重点
+
+这期介绍 DeepSeek 开源推理框架 DeepInfer。我们从系统视角理解它与特定模型、硬件和生产流量的配合：分阶段部署与专家均衡、长期共享缓存、短尾部状态重建，以及异步调度和投机审核预算。
+
+重点展开一个反直觉的问题：为什么官方生产配置中，智能体缓存采用三天保留策略，聊天却是七天？任务持续多久，与一份状态隔多久还会被使用，是不同的问题。聊天的长尾复用，让一小部分反复访问的缓存值得保留更久；保留期限应放在存储成本、重算负担和等待体验之间衡量。
+
+缓存过期不等于聊天记录消失：原记录仍可作为输入，但可能需要重建内部状态。长期缓存也不意味着把全部历史常驻显存。
+
+关键数据
+
+• 官方生成曲线使用64张NVIDIA SM100、约13万词元上下文。图中两个工作点约为：单用户250词元/秒、每GPU1.6万词元/秒；以及单用户100、每GPU2.6万。固定长度投机按75%逐token接受率折算，体现吞吐与交互速度的取舍。
+• 官方部署问答中，EP64/DP64、每分支约60条并发时，动态审核相对固定审核5个草稿token，估算吞吐增益5.4%，口播取约5%。这是机制内部比较，不是相对vLLM的加速倍数。
+
+集中讨论
+
+专用引擎与通用平台承担不同的产品范围，源码体量不是性能指标。公平比较应固定模型、硬件与互联、请求分布、缓存条件及质量要求，再在相同延迟目标下比较有效吞吐。
+
+时间线
+
+00:00 为什么还需要专用推理框架
+01:39 计算分工：分阶段部署与专家并行
+03:55 状态复用：共享缓存怎样改变调度
+04:59 为什么智能体缓存三天，聊天七天
+06:54 缓存分层与短尾部状态重建
+08:09 减少等待与低收益审核
+10:25 协议边界：把输出稳定交给工具
+11:08 性能曲线：吞吐与交互速度的取舍
+11:58 集中评论：专用化与公平比较
+13:36 三句话收束
+
+来源与链接
+
+DeepInfer 官方仓库
+https://github.com/deepseek-ai/DeepInfer
+
+部署问答（本期核读版本）
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/doc/inference_deployment_qa.md
+
+官方性能图
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/doc/images/decode_pareto.png
+
+绘图口径与benchmark扫描脚本
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/examples/sweep/plot_pareto.py
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/examples/sweep/run_sweep.sh
+
+制作说明
+
+主持：Jeff、Ada。音频由本地Qwen3生成，时长约13分58秒。依据官方文档、代码和图表核读，节目讨论不是我们自行复现的实验结果。]]></description>
+      <content:encoded><![CDATA[推理框架的效率，不只取决于算子有多快。DeepInfer 展示的是，计算怎样分工、过去的工作怎样留下，以及新的计算该花在什么地方。
+
+本期重点
+
+这期介绍 DeepSeek 开源推理框架 DeepInfer。我们从系统视角理解它与特定模型、硬件和生产流量的配合：分阶段部署与专家均衡、长期共享缓存、短尾部状态重建，以及异步调度和投机审核预算。
+
+重点展开一个反直觉的问题：为什么官方生产配置中，智能体缓存采用三天保留策略，聊天却是七天？任务持续多久，与一份状态隔多久还会被使用，是不同的问题。聊天的长尾复用，让一小部分反复访问的缓存值得保留更久；保留期限应放在存储成本、重算负担和等待体验之间衡量。
+
+缓存过期不等于聊天记录消失：原记录仍可作为输入，但可能需要重建内部状态。长期缓存也不意味着把全部历史常驻显存。
+
+关键数据
+
+• 官方生成曲线使用64张NVIDIA SM100、约13万词元上下文。图中两个工作点约为：单用户250词元/秒、每GPU1.6万词元/秒；以及单用户100、每GPU2.6万。固定长度投机按75%逐token接受率折算，体现吞吐与交互速度的取舍。
+• 官方部署问答中，EP64/DP64、每分支约60条并发时，动态审核相对固定审核5个草稿token，估算吞吐增益5.4%，口播取约5%。这是机制内部比较，不是相对vLLM的加速倍数。
+
+集中讨论
+
+专用引擎与通用平台承担不同的产品范围，源码体量不是性能指标。公平比较应固定模型、硬件与互联、请求分布、缓存条件及质量要求，再在相同延迟目标下比较有效吞吐。
+
+时间线
+
+00:00 为什么还需要专用推理框架
+01:39 计算分工：分阶段部署与专家并行
+03:55 状态复用：共享缓存怎样改变调度
+04:59 为什么智能体缓存三天，聊天七天
+06:54 缓存分层与短尾部状态重建
+08:09 减少等待与低收益审核
+10:25 协议边界：把输出稳定交给工具
+11:08 性能曲线：吞吐与交互速度的取舍
+11:58 集中评论：专用化与公平比较
+13:36 三句话收束
+
+来源与链接
+
+DeepInfer 官方仓库
+https://github.com/deepseek-ai/DeepInfer
+
+部署问答（本期核读版本）
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/doc/inference_deployment_qa.md
+
+官方性能图
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/doc/images/decode_pareto.png
+
+绘图口径与benchmark扫描脚本
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/examples/sweep/plot_pareto.py
+https://github.com/deepseek-ai/DeepInfer/blob/774ce244b87cc0eb8d4b94ab9f5de2ab22049f01/examples/sweep/run_sweep.sh
+
+制作说明
+
+主持：Jeff、Ada。音频由本地Qwen3生成，时长约13分58秒。依据官方文档、代码和图表核读，节目讨论不是我们自行复现的实验结果。]]></content:encoded>
+      <pubDate>Wed, 21 Oct 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-21-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ad782aed421cc807733933b</link>
+      <itunes:duration>13:57</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1019 MLSYS 特辑 · 换模型，状态就能接着用吗？</title>
+      <description><![CDATA[换一个便宜模型，不只是换一张价格表。前面做过的工作能留下多少、接收方能用多少，以及恢复是否比重算划算，才决定这次接力有没有净收益。
+
+本期重点
+
+复杂工作交给大模型、简单工作换小模型，是一种自然的分工。但长程 agent 会不断读取材料、调用工具、修改环境，任务的进展并不只存在于聊天文字中。如果换模型时无法有效继承这些积累，单次调用便宜了，整个任务却未必便宜。
+
+本期从三个系统问题展开：
+
+• 能不能用：内部状态看起来相似，不等于接收方能够取得其中的信息。交接接口不能只围绕发送者设计。
+• 值不值得搬：缓存命中只是一个可用选项，不是收益证明。计算越来越快时，远端恢复可能输给重算；典型延迟和尾部稳定性也可能要求不同取舍。
+• 保存什么：复用不必是全有或全无。完整结果与可继续加工的中间结果，可以在存储、通信和计算之间提供不同的平衡。
+
+我们用状态迁移、通信与计算、检查点与重计算这些系统视角串起论文，保留主要评测，减少实现细节的逐层展开。结尾再集中讨论：这些证据解释了什么，还没有证明什么？
+
+关键证据与口径
+
+• Close Enough：两百条短事实问答中，原生完整上下文参考为 66.5%，增补状态并适配读取后的结果为 69.5%。正例使用同一模型的两个实例，不能称显著超过原生，也不是任意异构模型的无损交接证明。
+• 远端缓存研究：在相同请求集合中，优化后恢复的 p50 为 0.40 秒，重算为 0.31 秒；p99 则分别为 0.67 秒和 1.28 秒。它提醒我们同时说明目标、基线和完整代价，而不是只汇报命中率。
+• CAPTURE：单 GPU、OPT 模型大批量推理，报告相对 FlexGen 约 2.19 倍吞吐。这个结果衡量单位时间完成更多生成，不是每个在线请求的等待都缩短同样倍数。
+
+集中讨论
+
+三篇论文没有共同完成一次长程跨模型 handoff 实验。第一篇主要研究状态的接收接口，后两篇主要研究同模型系统成本；它们提供互补视角，不能直接合成统一的切换收益。
+
+后续检验需要把状态重建与模型切换分开，保持任务和预算可比，并与“一开始选定模型、后面一直沿用”的简单策略比较。质量是否保住、总成本是否下降，应一起回答。
+
+时间线
+
+00:00 换模型时，进展到底存在哪里？
+01:49 Close Enough：状态相似，不等于接收方能读懂
+03:52 远端缓存：搬回来，还是重新算？
+06:46 CAPTURE：复用不必全有或全无
+08:47 集中讨论：三篇论文说明了什么，还缺什么？
+10:45 收束：读得懂、搬得动、补算多少
+
+论文与链接
+
+Close Enough is Nowhere Near: Fidelity-Consumability Decoupling in KV Caches
+https://arxiv.org/abs/2610.22016
+
+When the KV Cache Is Slower Than the GPU: Scaling Remote KV Tiers for Context-Parallel Prefill
+https://arxiv.org/abs/2610.21500
+
+Throughput-Oriented LLM Inference via KV-Activation Hybrid Caching with a Single GPU（CAPTURE）
+https://arxiv.org/abs/2501.01792
+
+制作说明
+主持：Jeff、Ada。音频使用本地 Qwen3 生成。依据 10/17 召回资料及公开论文核读；节目中的讨论不是我们自行复现的实验结果。]]></description>
+      <content:encoded><![CDATA[换一个便宜模型，不只是换一张价格表。前面做过的工作能留下多少、接收方能用多少，以及恢复是否比重算划算，才决定这次接力有没有净收益。
+
+本期重点
+
+复杂工作交给大模型、简单工作换小模型，是一种自然的分工。但长程 agent 会不断读取材料、调用工具、修改环境，任务的进展并不只存在于聊天文字中。如果换模型时无法有效继承这些积累，单次调用便宜了，整个任务却未必便宜。
+
+本期从三个系统问题展开：
+
+• 能不能用：内部状态看起来相似，不等于接收方能够取得其中的信息。交接接口不能只围绕发送者设计。
+• 值不值得搬：缓存命中只是一个可用选项，不是收益证明。计算越来越快时，远端恢复可能输给重算；典型延迟和尾部稳定性也可能要求不同取舍。
+• 保存什么：复用不必是全有或全无。完整结果与可继续加工的中间结果，可以在存储、通信和计算之间提供不同的平衡。
+
+我们用状态迁移、通信与计算、检查点与重计算这些系统视角串起论文，保留主要评测，减少实现细节的逐层展开。结尾再集中讨论：这些证据解释了什么，还没有证明什么？
+
+关键证据与口径
+
+• Close Enough：两百条短事实问答中，原生完整上下文参考为 66.5%，增补状态并适配读取后的结果为 69.5%。正例使用同一模型的两个实例，不能称显著超过原生，也不是任意异构模型的无损交接证明。
+• 远端缓存研究：在相同请求集合中，优化后恢复的 p50 为 0.40 秒，重算为 0.31 秒；p99 则分别为 0.67 秒和 1.28 秒。它提醒我们同时说明目标、基线和完整代价，而不是只汇报命中率。
+• CAPTURE：单 GPU、OPT 模型大批量推理，报告相对 FlexGen 约 2.19 倍吞吐。这个结果衡量单位时间完成更多生成，不是每个在线请求的等待都缩短同样倍数。
+
+集中讨论
+
+三篇论文没有共同完成一次长程跨模型 handoff 实验。第一篇主要研究状态的接收接口，后两篇主要研究同模型系统成本；它们提供互补视角，不能直接合成统一的切换收益。
+
+后续检验需要把状态重建与模型切换分开，保持任务和预算可比，并与“一开始选定模型、后面一直沿用”的简单策略比较。质量是否保住、总成本是否下降，应一起回答。
+
+时间线
+
+00:00 换模型时，进展到底存在哪里？
+01:49 Close Enough：状态相似，不等于接收方能读懂
+03:52 远端缓存：搬回来，还是重新算？
+06:46 CAPTURE：复用不必全有或全无
+08:47 集中讨论：三篇论文说明了什么，还缺什么？
+10:45 收束：读得懂、搬得动、补算多少
+
+论文与链接
+
+Close Enough is Nowhere Near: Fidelity-Consumability Decoupling in KV Caches
+https://arxiv.org/abs/2610.22016
+
+When the KV Cache Is Slower Than the GPU: Scaling Remote KV Tiers for Context-Parallel Prefill
+https://arxiv.org/abs/2610.21500
+
+Throughput-Oriented LLM Inference via KV-Activation Hybrid Caching with a Single GPU（CAPTURE）
+https://arxiv.org/abs/2501.01792
+
+制作说明
+主持：Jeff、Ada。音频使用本地 Qwen3 生成。依据 10/17 召回资料及公开论文核读；节目中的讨论不是我们自行复现的实验结果。]]></content:encoded>
+      <pubDate>Mon, 19 Oct 2026 01:54:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-19-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ad577e5641ef406308da866</link>
+      <itunes:duration>11:29</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1016 MLSYS 论文简报：换模型，不只交接聊天记录</title>
+      <description><![CDATA[1016 MLSYS 论文简报：换模型，不只交接聊天记录
+
+智能体做到一半换模型，接收者究竟需要什么？聊天记录让它知道前面发生了什么，计算缓存让它少做重复工作；这两种状态有关联，却不能相互替代。本期沿着“谁来接手、哪里返工、交接什么”三个问题，讨论有状态路由与跨模型计算复用。
+
+一条看似简单的追问，可能接着前一轮未完成的修改。便宜模型的单价再低，也可能先付出重读长历史的成本。我们先讲三篇论文的具体机制，再集中讨论质量、成本和关键对照，不把阶段加速直接包装成完整任务的收益。
+
+时间线
+
+00:00 开场：聊天记录和计算状态
+01:18 Whose turn is it：历史帮助选对回合
+03:38 RaReCache：KV 翻译后，哪里需要返工
+07:32 MapFlow：共享注意力地图
+10:15 集中讨论：质量、净成本与强基线
+14:25 结语：把交接放回完整任务里算
+
+本期论文
+
+Whose turn is it? Context-guided model routing for stateful agents
+微软；arXiv 预印本。
+https://arxiv.org/abs/2610.19292
+
+路由发生在用户回合的起点：选中的模型负责本回合全部工具循环，下一次追问时再选择。运行时持续保留工作簿，历史记录请求、工具结果与错误，因此当前回合的难度取决于之前发生的事。
+
+在 SheetCopilot 上，同一个路由器看到历史后，三组模型搭配的平均整段任务成功率从 25.0% 提高到 28.3%，便宜模型承担的回合比例相近。这个实验支持“历史帮助选对回合”，而不是“动态切换已经净省钱”。论文没有实测同一个首轮路由器选完就固定的对照；费用表也明确排除了 router 调用成本。
+
+RaReCache: Bridging the Gap in Cross-Model KV Cache Reuse via Rank disagreement-based Selective Recomputation
+南加州大学、加州大学欧文分校、英特尔研究院；arXiv 预印本。
+https://arxiv.org/abs/2610.11358
+
+先把已有发送端 KV 映射到接收端空间，再用校准子空间之外的能量，挑出值得接收模型亲自重算的位置。这里的 rank 是低秩子空间，不是多个模型的答案排名；重算位置仍关注完整上下文，不是删除其余历史。
+
+Qwen3-0.6B→14B 在完整 GSM8K 测试中，纯映射准确率为 71.6%，重算 30% 位置后为 90.2%，原生接收模型完整预填充为 95.1%。这些数字来自同一个全量测试，不混用选择器诊断的 300 题结果。三成预算也不是通用质量保证：MMLU 上保留的原生准确率为 77.9%。校准分布、切换方向和服务负载，都会影响收益。
+
+Accelerating Cross-Model LLM Inference via Attention Map Reuse（MapFlow）
+北京大学；arXiv journal-reference 标注 SIGMOD 2027。
+https://arxiv.org/abs/2610.14688
+
+它共享“哪些 token 关注哪些 token”的注意力权重，而不是完整 KV。接收端先自行计算早期层，再混合发送端的注意力头，作用到自己产生的 V；稀疏分块缓存与融合算子避免物化完整的大地图。接收模型的内容表示、输出和前馈计算仍然存在。
+
+论文报告预填充延迟相对完整预填充减少约 15%–20%，并与 FlexPrefill 等方法比较。在指定三模型顺序工作流中，端到端加速最多为 5.4%。两者是不同指标；长上下文测试也出现明显质量下降，不能说普遍无损。SIGMOD 信息采用 arXiv 标注，未独立核对官方录用目录。
+
+集中讨论
+
+本期评价：Whose turn is it 为“人上人”，RaReCache 与 MapFlow 为“顶级”。评价针对已展示的贡献，不代表任意场景都适用。后两种接续方案没有在同一协议下直接对打，不能据此宣布哪种表示全面胜出。
+
+Handoff tax 至少涉及语义轨迹、环境状态、缓存计算和已消耗预算。缓存复用不能撤销错误修改，也不能自动修正前一位模型的推理。一个值得先做的对照是：同模型热缓存、同模型强制冷缓存，再在相同环境与预算下换模型。它帮助区分重算成本与其他交接影响，但简单相减不能自动识别每一种税。
+
+制作说明
+
+主持为 Jeff 与 Ada，声音由本地 Qwen3-TTS 合成。原文事实与主要数表经过全文核对；未独立运行三篇论文的实验。本期选题来自 10 月 15 日公告召回及刷新后的待处理池，按已确认选题补发。]]></description>
+      <content:encoded><![CDATA[1016 MLSYS 论文简报：换模型，不只交接聊天记录
+
+智能体做到一半换模型，接收者究竟需要什么？聊天记录让它知道前面发生了什么，计算缓存让它少做重复工作；这两种状态有关联，却不能相互替代。本期沿着“谁来接手、哪里返工、交接什么”三个问题，讨论有状态路由与跨模型计算复用。
+
+一条看似简单的追问，可能接着前一轮未完成的修改。便宜模型的单价再低，也可能先付出重读长历史的成本。我们先讲三篇论文的具体机制，再集中讨论质量、成本和关键对照，不把阶段加速直接包装成完整任务的收益。
+
+时间线
+
+00:00 开场：聊天记录和计算状态
+01:18 Whose turn is it：历史帮助选对回合
+03:38 RaReCache：KV 翻译后，哪里需要返工
+07:32 MapFlow：共享注意力地图
+10:15 集中讨论：质量、净成本与强基线
+14:25 结语：把交接放回完整任务里算
+
+本期论文
+
+Whose turn is it? Context-guided model routing for stateful agents
+微软；arXiv 预印本。
+https://arxiv.org/abs/2610.19292
+
+路由发生在用户回合的起点：选中的模型负责本回合全部工具循环，下一次追问时再选择。运行时持续保留工作簿，历史记录请求、工具结果与错误，因此当前回合的难度取决于之前发生的事。
+
+在 SheetCopilot 上，同一个路由器看到历史后，三组模型搭配的平均整段任务成功率从 25.0% 提高到 28.3%，便宜模型承担的回合比例相近。这个实验支持“历史帮助选对回合”，而不是“动态切换已经净省钱”。论文没有实测同一个首轮路由器选完就固定的对照；费用表也明确排除了 router 调用成本。
+
+RaReCache: Bridging the Gap in Cross-Model KV Cache Reuse via Rank disagreement-based Selective Recomputation
+南加州大学、加州大学欧文分校、英特尔研究院；arXiv 预印本。
+https://arxiv.org/abs/2610.11358
+
+先把已有发送端 KV 映射到接收端空间，再用校准子空间之外的能量，挑出值得接收模型亲自重算的位置。这里的 rank 是低秩子空间，不是多个模型的答案排名；重算位置仍关注完整上下文，不是删除其余历史。
+
+Qwen3-0.6B→14B 在完整 GSM8K 测试中，纯映射准确率为 71.6%，重算 30% 位置后为 90.2%，原生接收模型完整预填充为 95.1%。这些数字来自同一个全量测试，不混用选择器诊断的 300 题结果。三成预算也不是通用质量保证：MMLU 上保留的原生准确率为 77.9%。校准分布、切换方向和服务负载，都会影响收益。
+
+Accelerating Cross-Model LLM Inference via Attention Map Reuse（MapFlow）
+北京大学；arXiv journal-reference 标注 SIGMOD 2027。
+https://arxiv.org/abs/2610.14688
+
+它共享“哪些 token 关注哪些 token”的注意力权重，而不是完整 KV。接收端先自行计算早期层，再混合发送端的注意力头，作用到自己产生的 V；稀疏分块缓存与融合算子避免物化完整的大地图。接收模型的内容表示、输出和前馈计算仍然存在。
+
+论文报告预填充延迟相对完整预填充减少约 15%–20%，并与 FlexPrefill 等方法比较。在指定三模型顺序工作流中，端到端加速最多为 5.4%。两者是不同指标；长上下文测试也出现明显质量下降，不能说普遍无损。SIGMOD 信息采用 arXiv 标注，未独立核对官方录用目录。
+
+集中讨论
+
+本期评价：Whose turn is it 为“人上人”，RaReCache 与 MapFlow 为“顶级”。评价针对已展示的贡献，不代表任意场景都适用。后两种接续方案没有在同一协议下直接对打，不能据此宣布哪种表示全面胜出。
+
+Handoff tax 至少涉及语义轨迹、环境状态、缓存计算和已消耗预算。缓存复用不能撤销错误修改，也不能自动修正前一位模型的推理。一个值得先做的对照是：同模型热缓存、同模型强制冷缓存，再在相同环境与预算下换模型。它帮助区分重算成本与其他交接影响，但简单相减不能自动识别每一种税。
+
+制作说明
+
+主持为 Jeff 与 Ada，声音由本地 Qwen3-TTS 合成。原文事实与主要数表经过全文核对；未独立运行三篇论文的实验。本期选题来自 10 月 15 日公告召回及刷新后的待处理池，按已确认选题补发。]]></content:encoded>
+      <pubDate>Fri, 16 Oct 2026 06:01:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-16</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ad1bbc20e4e410a05bdc0e9</link>
+      <itunes:duration>15:05</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1015 MLSYS 论文简报：换模型，前面的计算怎么办？</title>
+      <description><![CDATA[1015 MLSYS 论文简报：换模型，前面的计算怎么办？
+
+更便宜的下一步，不一定带来更便宜的整个任务。Agent 的模型接棒既是路由决策，也是计算状态的交接。本期沿着“要不要换、缓存怎么接、信息存在哪”阅读三篇公开论文，先讲问题和机制，最后集中讨论成本与证据边界。
+
+时间线
+00:00 开场：便宜的下一步，未必省下整个任务
+00:54 Handoff Curves：首轮固定是强基线
+04:23 CacheLink：让接收模型真正用上旧 KV
+08:18 PatchKV：用权重补偿压缩缓存
+11:13 集中讨论：质量、准备成本与缓存对照
+13:20 结语：决策与状态交接一起算账
+
+Handoff Curves: Initial Selection, Later Handoff, and Supervision Targets in Multi-turn LLM Routing
+https://arxiv.org/abs/2610.15993
+华为黎曼实验室，2026 年 10 月 11 日首投。
+
+路由器开场选对模型，和它在后面选对接棒时机，不是同一份收益。作者针对不同的切换位置收集完整执行，数据共 34,204 次，覆盖 BFCL、MultiWOZ 与 τ-retail，包含训练和评估采集，不是三万多个独立测试任务。
+
+主要比较使用同一个 direct router，对照初轮选定并保持不变与一次永久后续接棒。在 Qwen3.5 35B-A3B 起点、BFCL／MultiWOZ 的设置下，后续接棒没有建立额外效用优势。TwinRouterBench 的另一组静态实验表明，预测余下轨迹所需能力的监督，优于只盯当前一步的标签；不能把静态轨迹指标当成在线任务解决率。
+
+CacheLink: Functional KV Transport for Zero-Prefill Cross-Model Context Handoff
+https://arxiv.org/abs/2610.15509
+哈尔滨工业大学深圳校区、大湾区大学、浙江大学，2026 年 10 月 11 日首投。
+
+KV 的平均重建误差不足以代表接收模型能否有效使用它。方法保留冻结的 Ridge 映射，再通过共享表示联合修正 K 与 V。训练时冻结接收模型，使用续写交叉熵与接收端原生预测分布的 forward KL，优化接收模型的功能，而非只优化逐元素缓存误差。
+
+四组实验均是在各自模型家族内部小→大，跨任务等权均分均高于 Ridge。32K 可复用前缀、发送端缓存已存在时，Qwen3-14B→32B 的交接延迟相对接收端 re-prefill 最高加速 7.27×。这个数字不含发送端首次 prefill，不能解释成全请求或完整多轮 Agent 的加速比；部分长任务质量仍低于原生模型。
+
+PatchKV: Weight-Space Compensation of KV Cache
+https://arxiv.org/abs/2609.39329
+韩国科学技术院，2026 年 9 月 30 日首投、10 月 13 日 v2。作者在 arXiv comments 标注 NeurIPS 2026。
+
+先用完整 KV 教师与压缩 KV 学生读取上下文参考序列，逐 block 对齐激活，再通过闭式岭回归将差异写入 MLP 输出投影。补丁与小 KV 配套，在单活跃上下文、多次查询且补丁已 merge 的条件下，不增加逐次回答的前向图分支。免梯度训练不等于没有准备计算。
+
+原始 SCBench Code.RepoQA、Qwen2.5-7B-1M、保留 20% KV 时，Attention Matching 的 Pass@1 从 15.23% 提升到叠加补丁后的 33.64%。同一上下文中，配套缓存／补丁优于交换后的组合，支持它在补具体缓存缺失的信息；不是跨模型补丁迁移。
+
+集中讨论
+
+判断是否值得接棒，需要同时看到初轮固定策略、同模型缓存命中／清空重算、接收模型原生 prefill 与状态转换的对照。还应对齐任务现场、剩余预算、质量门槛，并核算准备、训练、搬运、权重驻留和后续执行。
+
+Handoff Curves 的主要策略结论依赖离线执行库；CacheLink 没有验证大→小与多轮反复交接；PatchKV 依赖固定材料的重复查询来摊销准备成本，且有长检索任务补不回质量。三篇打开不同的设计空间，但还没有组成一套经过联合验证的路由系统。
+
+制作说明
+
+文稿基于公开论文全文审读。选篇时最新可见公告批次为 2026 年 10 月 14 日，公告日期与提交日期分别记录；待处理候选已先进行最近召回与已播去重。Jeff／Ada 双主持，本地 Qwen3-TTS 合成，为 AI 生成音频。]]></description>
+      <content:encoded><![CDATA[1015 MLSYS 论文简报：换模型，前面的计算怎么办？
+
+更便宜的下一步，不一定带来更便宜的整个任务。Agent 的模型接棒既是路由决策，也是计算状态的交接。本期沿着“要不要换、缓存怎么接、信息存在哪”阅读三篇公开论文，先讲问题和机制，最后集中讨论成本与证据边界。
+
+时间线
+00:00 开场：便宜的下一步，未必省下整个任务
+00:54 Handoff Curves：首轮固定是强基线
+04:23 CacheLink：让接收模型真正用上旧 KV
+08:18 PatchKV：用权重补偿压缩缓存
+11:13 集中讨论：质量、准备成本与缓存对照
+13:20 结语：决策与状态交接一起算账
+
+Handoff Curves: Initial Selection, Later Handoff, and Supervision Targets in Multi-turn LLM Routing
+https://arxiv.org/abs/2610.15993
+华为黎曼实验室，2026 年 10 月 11 日首投。
+
+路由器开场选对模型，和它在后面选对接棒时机，不是同一份收益。作者针对不同的切换位置收集完整执行，数据共 34,204 次，覆盖 BFCL、MultiWOZ 与 τ-retail，包含训练和评估采集，不是三万多个独立测试任务。
+
+主要比较使用同一个 direct router，对照初轮选定并保持不变与一次永久后续接棒。在 Qwen3.5 35B-A3B 起点、BFCL／MultiWOZ 的设置下，后续接棒没有建立额外效用优势。TwinRouterBench 的另一组静态实验表明，预测余下轨迹所需能力的监督，优于只盯当前一步的标签；不能把静态轨迹指标当成在线任务解决率。
+
+CacheLink: Functional KV Transport for Zero-Prefill Cross-Model Context Handoff
+https://arxiv.org/abs/2610.15509
+哈尔滨工业大学深圳校区、大湾区大学、浙江大学，2026 年 10 月 11 日首投。
+
+KV 的平均重建误差不足以代表接收模型能否有效使用它。方法保留冻结的 Ridge 映射，再通过共享表示联合修正 K 与 V。训练时冻结接收模型，使用续写交叉熵与接收端原生预测分布的 forward KL，优化接收模型的功能，而非只优化逐元素缓存误差。
+
+四组实验均是在各自模型家族内部小→大，跨任务等权均分均高于 Ridge。32K 可复用前缀、发送端缓存已存在时，Qwen3-14B→32B 的交接延迟相对接收端 re-prefill 最高加速 7.27×。这个数字不含发送端首次 prefill，不能解释成全请求或完整多轮 Agent 的加速比；部分长任务质量仍低于原生模型。
+
+PatchKV: Weight-Space Compensation of KV Cache
+https://arxiv.org/abs/2609.39329
+韩国科学技术院，2026 年 9 月 30 日首投、10 月 13 日 v2。作者在 arXiv comments 标注 NeurIPS 2026。
+
+先用完整 KV 教师与压缩 KV 学生读取上下文参考序列，逐 block 对齐激活，再通过闭式岭回归将差异写入 MLP 输出投影。补丁与小 KV 配套，在单活跃上下文、多次查询且补丁已 merge 的条件下，不增加逐次回答的前向图分支。免梯度训练不等于没有准备计算。
+
+原始 SCBench Code.RepoQA、Qwen2.5-7B-1M、保留 20% KV 时，Attention Matching 的 Pass@1 从 15.23% 提升到叠加补丁后的 33.64%。同一上下文中，配套缓存／补丁优于交换后的组合，支持它在补具体缓存缺失的信息；不是跨模型补丁迁移。
+
+集中讨论
+
+判断是否值得接棒，需要同时看到初轮固定策略、同模型缓存命中／清空重算、接收模型原生 prefill 与状态转换的对照。还应对齐任务现场、剩余预算、质量门槛，并核算准备、训练、搬运、权重驻留和后续执行。
+
+Handoff Curves 的主要策略结论依赖离线执行库；CacheLink 没有验证大→小与多轮反复交接；PatchKV 依赖固定材料的重复查询来摊销准备成本，且有长检索任务补不回质量。三篇打开不同的设计空间，但还没有组成一套经过联合验证的路由系统。
+
+制作说明
+
+文稿基于公开论文全文审读。选篇时最新可见公告批次为 2026 年 10 月 14 日，公告日期与提交日期分别记录；待处理候选已先进行最近召回与已播去重。Jeff／Ada 双主持，本地 Qwen3-TTS 合成，为 AI 生成音频。]]></content:encoded>
+      <pubDate>Thu, 15 Oct 2026 03:48:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-15</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ad04b0be742e36efcc33ab7</link>
+      <itunes:duration>14:04</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1007 MLSYS 论文简报：Agent 写 GPU kernel 的三道坎</title>
+      <description><![CDATA[1007 MLSYS 论文简报：Agent 写 GPU kernel 的三道坎
+
+编程 Agent 已经能写出正确的 GPU kernel，但“能运行”与“足够快、方便验证”之间，还有很长一段路。本期沿着真实开发流程读三篇论文：先看接口如何改变 Agent 的搜索空间，再看测量反馈怎样支持逐应用专用化，最后看真实设备上的调试工具怎样保住出错现场。
+
+本期重点
+
+SyclKittens 把 Intel GPU 的矩阵布局、预取与通信经验做成可编程的 tile 操作。固定同一 Agent、任务和反馈预算的单 GPU 矩阵乘实验里，最快正确结果从 oneDNN 的 57.5% 提升到 82.1%。论文另有人和 Agent 共同打磨的整套 kernel 与端到端推理结果；这两层证据不能混同。
+
+ForgeStencil 让 Kernel Agent 为具体 stencil 配置合成 CUDA，再让 App Agent 找到真实应用中值得优化的热点。100 个已验证工业与科学计算应用的端到端中位加速为 1.41 倍。值得注意的是，其中 17 个改进不需要新的设备 kernel，只改 host 侧或程序结构。
+
+PKDB 针对 PyKokkos，把 Python 调试器与 GPU/CPU 设备侧调试器接通。它支持断点、变量检查、现场执行与 kernel 调用热替换，让开发者在真实设备状态里找错误，不必一律退回串行 CPU 环境。它不是 Agent 系统，而是生成代码之后的调试反馈工具。
+
+集中讨论
+
+三篇覆盖不同硬件与框架，不构成一条已经集成的生产线。SyclKittens 的接口收益有任务与模型差异；ForgeStencil 的 100 个应用是验证通过的集成集；PKDB 当前主要覆盖 PyKokkos。接下来更值得追问的是，把接口、专用化和调试接起来后，端到端的性能收益是否超过模型调用、编译、测量和人工验证的总成本。
+
+时间线
+00:00 开场 · 三道坎
+00:42 SyclKittens · 原始接口为什么慢
+01:49 把硬件经验放进 tile 接口
+02:23 同预算受控实验
+04:04 ForgeStencil · 通用性税
+05:24 Kernel Agent 与 App Agent
+06:22 一百个应用的端到端加速
+07:58 PKDB · 真实设备上的调试
+08:34 断点、现场执行与热替换
+09:34 调试开销与适用范围
+10:20 集中讨论
+11:28 收尾
+
+论文与链接
+
+SyclKittens: A Tile Programming Model for Programmers and Coding Agents on Intel GPUs
+https://arxiv.org/abs/2610.04277
+
+ForgeStencil: Automating Per-Case Stencil Specialization from Kernels to 100+ Real Applications
+https://arxiv.org/abs/2609.06694
+
+Interactive Debugger for Performance Portable Python HPC Kernels
+https://arxiv.org/abs/2609.07912
+
+Jeff 与 Ada 主持。本期音频由本地 Qwen3-TTS 合成。]]></description>
+      <content:encoded><![CDATA[1007 MLSYS 论文简报：Agent 写 GPU kernel 的三道坎
+
+编程 Agent 已经能写出正确的 GPU kernel，但“能运行”与“足够快、方便验证”之间，还有很长一段路。本期沿着真实开发流程读三篇论文：先看接口如何改变 Agent 的搜索空间，再看测量反馈怎样支持逐应用专用化，最后看真实设备上的调试工具怎样保住出错现场。
+
+本期重点
+
+SyclKittens 把 Intel GPU 的矩阵布局、预取与通信经验做成可编程的 tile 操作。固定同一 Agent、任务和反馈预算的单 GPU 矩阵乘实验里，最快正确结果从 oneDNN 的 57.5% 提升到 82.1%。论文另有人和 Agent 共同打磨的整套 kernel 与端到端推理结果；这两层证据不能混同。
+
+ForgeStencil 让 Kernel Agent 为具体 stencil 配置合成 CUDA，再让 App Agent 找到真实应用中值得优化的热点。100 个已验证工业与科学计算应用的端到端中位加速为 1.41 倍。值得注意的是，其中 17 个改进不需要新的设备 kernel，只改 host 侧或程序结构。
+
+PKDB 针对 PyKokkos，把 Python 调试器与 GPU/CPU 设备侧调试器接通。它支持断点、变量检查、现场执行与 kernel 调用热替换，让开发者在真实设备状态里找错误，不必一律退回串行 CPU 环境。它不是 Agent 系统，而是生成代码之后的调试反馈工具。
+
+集中讨论
+
+三篇覆盖不同硬件与框架，不构成一条已经集成的生产线。SyclKittens 的接口收益有任务与模型差异；ForgeStencil 的 100 个应用是验证通过的集成集；PKDB 当前主要覆盖 PyKokkos。接下来更值得追问的是，把接口、专用化和调试接起来后，端到端的性能收益是否超过模型调用、编译、测量和人工验证的总成本。
+
+时间线
+00:00 开场 · 三道坎
+00:42 SyclKittens · 原始接口为什么慢
+01:49 把硬件经验放进 tile 接口
+02:23 同预算受控实验
+04:04 ForgeStencil · 通用性税
+05:24 Kernel Agent 与 App Agent
+06:22 一百个应用的端到端加速
+07:58 PKDB · 真实设备上的调试
+08:34 断点、现场执行与热替换
+09:34 调试开销与适用范围
+10:20 集中讨论
+11:28 收尾
+
+论文与链接
+
+SyclKittens: A Tile Programming Model for Programmers and Coding Agents on Intel GPUs
+https://arxiv.org/abs/2610.04277
+
+ForgeStencil: Automating Per-Case Stencil Specialization from Kernels to 100+ Real Applications
+https://arxiv.org/abs/2609.06694
+
+Interactive Debugger for Performance Portable Python HPC Kernels
+https://arxiv.org/abs/2609.07912
+
+Jeff 与 Ada 主持。本期音频由本地 Qwen3-TTS 合成。]]></content:encoded>
+      <pubDate>Wed, 07 Oct 2026 01:02:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-07</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ac59970195d838e2aedfd57</link>
+      <itunes:duration>11:46</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1006 MLSYS Weekly · 复用之前，先问什么还有效</title>
+      <description><![CDATA[1006 MLSYS Weekly · 复用之前，先问什么还有效
+
+音频：15:32 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+Osprey：先建立可迁移的草稿模型底座，再适配目标。
+MegaFlux：用专家复制分担热点，把额外通信藏进执行流水线。
+Retire：旧执行撤权以后，仍可安全继承有效的计算状态。
+
+章节顺序：问题与场景 → Osprey → MegaFlux → Retire → 证据边界 → 阅读建议。
+
+论文：
+https://arxiv.org/abs/2609.09338
+https://arxiv.org/abs/2610.00671
+https://arxiv.org/abs/2610.01160
+
+结果口径：Osprey 的约18%来自指定单请求吞吐对照；MegaFlux 的1.45倍是层级前向，集成首token为1.13–1.26倍；Retire 的17.1%是指定受控条件下的中位配对降幅。三者不能相乘。]]></description>
+      <content:encoded><![CDATA[1006 MLSYS Weekly · 复用之前，先问什么还有效
+
+音频：15:32 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+Osprey：先建立可迁移的草稿模型底座，再适配目标。
+MegaFlux：用专家复制分担热点，把额外通信藏进执行流水线。
+Retire：旧执行撤权以后，仍可安全继承有效的计算状态。
+
+章节顺序：问题与场景 → Osprey → MegaFlux → Retire → 证据边界 → 阅读建议。
+
+论文：
+https://arxiv.org/abs/2609.09338
+https://arxiv.org/abs/2610.00671
+https://arxiv.org/abs/2610.01160
+
+结果口径：Osprey 的约18%来自指定单请求吞吐对照；MegaFlux 的1.45倍是层级前向，集成首token为1.13–1.26倍；Retire 的17.1%是指定受控条件下的中位配对降幅。三者不能相乘。]]></content:encoded>
+      <pubDate>Tue, 06 Oct 2026 01:02:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-10-06-weekly</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ac44844e742e36efcbebf99</link>
+      <itunes:duration>15:32</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>0924 CodeMidas 特辑 · 代码自己会出题？</title>
+      <description><![CDATA[音频：10:19 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+CodeMidas 不发明新的 RL 算法，而是研究如何从正常工作的开源代码库里，反向生产 coding agent 可操作、可自动判分的训练环境。
+
+本期从一个“挖空已有功能”的例子出发，依次讲任务设计、reference-grounded tests、容器清理、对抗式泄漏探测、verifier 审查与难度筛选。核心结果是：MiMo-V2.5 用这批环境做 GRPO 后，五类外部评测均提升；高质量 3k 环境在三项消融评测上胜过未经完整清理和筛选的 vanilla 8k。
+
+评论
+代码文本很多，可信的训练环境却不够。CodeMidas 把已有功能反向编译成“可操作、可判分的软件世界”；难的不是挖空代码，而是让题目和判分真正可靠。
+
+时间线
+00:00 代码很多，可信的 RL 环境为什么少？
+00:54 从 issue、commit 到“源码自己出题”
+01:26 挖空功能：原实现同时成为行为 oracle
+02:17 如何避免把偶然实现细节写进测试
+02:40 隐藏 verifier 与判分接口
+03:33 六次容器一致性检查及泄漏探测
+04:33 5,545 个任务的环境工厂
+04:57 MiMo-V2.5、GRPO 与五类外部结果
+05:54 高质量 3k 为什么能赢 vanilla 8k
+06:37 Agent 的读代码与自检行为
+07:13 Function-Aware FIM：同样用源码，不同训练阶段
+08:06 集中讨论：证明了什么，还缺什么对照？
+08:43 哪层 QA 最值钱，造环境到底多贵？
+09:44 结论：环境本身成了基础设施
+
+论文与链接
+CodeMidas: Scaling Agentic Coding RL Environments from Code Itself
+https://arxiv.org/abs/2609.22068
+Function-Aware Fill-in-the-Middle as Mid-Training for Coding Agent Foundation Models
+https://arxiv.org/abs/2607.12463
+R2E-Gym
+https://arxiv.org/abs/2504.07164
+SWE-smith
+https://arxiv.org/abs/2504.21798
+
+制作元信息
+以 arXiv 原文为技术事实来源。CodeMidas 结果为作者报告，不是不同论文之间的直接排行榜。ProgramBench 的 21.5 是 Almost Solved，即至少通过 95% hidden tests 的任务比例，不是 fully solved。本期为 AI 合成双主持音频。]]></description>
+      <content:encoded><![CDATA[音频：10:19 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+CodeMidas 不发明新的 RL 算法，而是研究如何从正常工作的开源代码库里，反向生产 coding agent 可操作、可自动判分的训练环境。
+
+本期从一个“挖空已有功能”的例子出发，依次讲任务设计、reference-grounded tests、容器清理、对抗式泄漏探测、verifier 审查与难度筛选。核心结果是：MiMo-V2.5 用这批环境做 GRPO 后，五类外部评测均提升；高质量 3k 环境在三项消融评测上胜过未经完整清理和筛选的 vanilla 8k。
+
+评论
+代码文本很多，可信的训练环境却不够。CodeMidas 把已有功能反向编译成“可操作、可判分的软件世界”；难的不是挖空代码，而是让题目和判分真正可靠。
+
+时间线
+00:00 代码很多，可信的 RL 环境为什么少？
+00:54 从 issue、commit 到“源码自己出题”
+01:26 挖空功能：原实现同时成为行为 oracle
+02:17 如何避免把偶然实现细节写进测试
+02:40 隐藏 verifier 与判分接口
+03:33 六次容器一致性检查及泄漏探测
+04:33 5,545 个任务的环境工厂
+04:57 MiMo-V2.5、GRPO 与五类外部结果
+05:54 高质量 3k 为什么能赢 vanilla 8k
+06:37 Agent 的读代码与自检行为
+07:13 Function-Aware FIM：同样用源码，不同训练阶段
+08:06 集中讨论：证明了什么，还缺什么对照？
+08:43 哪层 QA 最值钱，造环境到底多贵？
+09:44 结论：环境本身成了基础设施
+
+论文与链接
+CodeMidas: Scaling Agentic Coding RL Environments from Code Itself
+https://arxiv.org/abs/2609.22068
+Function-Aware Fill-in-the-Middle as Mid-Training for Coding Agent Foundation Models
+https://arxiv.org/abs/2607.12463
+R2E-Gym
+https://arxiv.org/abs/2504.07164
+SWE-smith
+https://arxiv.org/abs/2504.21798
+
+制作元信息
+以 arXiv 原文为技术事实来源。CodeMidas 结果为作者报告，不是不同论文之间的直接排行榜。ProgramBench 的 21.5 是 Almost Solved，即至少通过 95% hidden tests 的任务比例，不是 fully solved。本期为 AI 合成双主持音频。]]></content:encoded>
+      <pubDate>Thu, 24 Sep 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-09-24-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/episode/6ab3e3b993d5eb3bdc79e7a4</link>
+      <itunes:duration>10:19</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>0921 Jev 特辑 · 不写答案的模型，怎么让软件做决定？</title>
+      <description><![CDATA[# 0921 Jev 特辑 · 不写答案的模型，怎么让软件做决定？
+
+音频：12:00 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+Jev 不写文章、不写代码，也不直接执行工具。它读取一份 state，再对开发者定义好的 Choice、Score 或 Noul 问题返回结构化概率判断。
+
+本期以 TypeSafe 官方资料为主，讨论 Jev 真正提供了什么：它与聊天模型、Agent 和传统分类器的区别；Choice 概率为什么不是后端模型成功率；confidence 为什么也不是正确率保证；以及为什么 type-safe 仍然不等于 truth-safe。
+
+> **结构可以合法，判断仍然可能错。**
+
+## 三个核心原语
+
+- **Choice**：从开发者定义的互斥候选中选择，返回完整概率分布和 confidence。
+- **Score**：在两到十个有顺序、带语义描述的等级之间判断，返回期望位置、等级概率和 confidence。
+- **Noul**：回答 yes / no 问题，返回 yes 的概率。它不是程度分数，也没有单独的 confidence 字段。
+
+如果 Choice 给 Sol 0.7，这表示 Jev 在当前候选描述与分配准则下，把 70% 的选择概率放在 Sol 上；它不表示 Sol 有 70% 概率完成任务。后端成功率需要历史结果、在线评测或专门校准的问题。
+
+## 谁真正执行动作
+
+Jev 做完判断后，应用代码可以：
+
+- 走一个确定性分支；
+- 调用专门语言模型；
+- 请求人工审核；
+- 把建议写回生成式 Agent 的上下文。
+
+真正的 API 调用、数据库写入、下单与文件修改，应由代码中的显式 dispatcher 执行。官方的函数调用、SDE 级联与技能建议案例，都体现了这种分工。
+
+## Type-safe 不等于 truth-safe
+
+Jev 可以保证返回允许的候选与字段形状，避免自由文本解析和非法函数名；但合法选择仍可能在语义上错误。多个独立问题也可能分别合法、联合起来却不相容。
+
+官方列出的薄弱点包括：数学与计数、日期时间比较、过度字面理解、间接表达、长篇无关 state、对抗内容、矛盾指令、跨问题结构约束和开放式生成。精确算术、确定性规则与副作用应该留在代码里。
+
+## 时间线
+
+- **00:00** 一个不写答案的模型
+- **00:54** 从客服分流理解动态“菜单”
+- **01:38** Choice、Score 与 Noul
+- **02:20** 概率、confidence 与成功率
+- **03:38** 置信门控：执行、谨慎或升级
+- **04:27** 模型做判断，代码做动作
+- **05:05** 函数分发与开放参数的边界
+- **05:47** SDE 级联与技能建议
+- **06:54** 同一份 state 上并行提问
+- **07:43** 独立问题为什么会破坏联合约束
+- **08:26** Type-safe 不等于 Truth-safe
+- **09:30** 怎样读厂商速度与成本数字
+- **10:46** Jev 适合怎样的软件分工
+- **11:29** 概率化 if 语句，不是真理机器
+
+## 资料
+
+- [Jev introduction](https://docs.typesafe.ai/introduction)
+- [Choice](https://docs.typesafe.ai/primitives/choice)
+- [Score](https://docs.typesafe.ai/primitives/score)
+- [Noul](https://docs.typesafe.ai/primitives/noul)
+- [Confidence](https://docs.typesafe.ai/confidence)
+- [System One](https://docs.typesafe.ai/concepts/system-one)
+- [How to build with System One](https://docs.typesafe.ai/concepts/how-to-build-with-system-one)
+- [Jev 1.13 model jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13)
+- [Function calling cookbook](https://docs.typesafe.ai/cookbooks/function_calling)
+- [SDE cascade cookbook](https://docs.typesafe.ai/cookbooks/sde_cascade)
+- [Skill suggestion cookbook](https://docs.typesafe.ai/cookbooks/skill_suggestion)
+- [Parallel questions cookbook](https://docs.typesafe.ai/cookbooks/parallel_questions)
+- [Introducing System One Models and Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
+
+厂商披露的速度、成本与工作流结果均为官方自报，并非独立 benchmark。实际效果取决于任务分布、state、候选描述、阈值与评测方式。]]></description>
+      <content:encoded><![CDATA[# 0921 Jev 特辑 · 不写答案的模型，怎么让软件做决定？
+
+音频：12:00 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+Jev 不写文章、不写代码，也不直接执行工具。它读取一份 state，再对开发者定义好的 Choice、Score 或 Noul 问题返回结构化概率判断。
+
+本期以 TypeSafe 官方资料为主，讨论 Jev 真正提供了什么：它与聊天模型、Agent 和传统分类器的区别；Choice 概率为什么不是后端模型成功率；confidence 为什么也不是正确率保证；以及为什么 type-safe 仍然不等于 truth-safe。
+
+> **结构可以合法，判断仍然可能错。**
+
+## 三个核心原语
+
+- **Choice**：从开发者定义的互斥候选中选择，返回完整概率分布和 confidence。
+- **Score**：在两到十个有顺序、带语义描述的等级之间判断，返回期望位置、等级概率和 confidence。
+- **Noul**：回答 yes / no 问题，返回 yes 的概率。它不是程度分数，也没有单独的 confidence 字段。
+
+如果 Choice 给 Sol 0.7，这表示 Jev 在当前候选描述与分配准则下，把 70% 的选择概率放在 Sol 上；它不表示 Sol 有 70% 概率完成任务。后端成功率需要历史结果、在线评测或专门校准的问题。
+
+## 谁真正执行动作
+
+Jev 做完判断后，应用代码可以：
+
+- 走一个确定性分支；
+- 调用专门语言模型；
+- 请求人工审核；
+- 把建议写回生成式 Agent 的上下文。
+
+真正的 API 调用、数据库写入、下单与文件修改，应由代码中的显式 dispatcher 执行。官方的函数调用、SDE 级联与技能建议案例，都体现了这种分工。
+
+## Type-safe 不等于 truth-safe
+
+Jev 可以保证返回允许的候选与字段形状，避免自由文本解析和非法函数名；但合法选择仍可能在语义上错误。多个独立问题也可能分别合法、联合起来却不相容。
+
+官方列出的薄弱点包括：数学与计数、日期时间比较、过度字面理解、间接表达、长篇无关 state、对抗内容、矛盾指令、跨问题结构约束和开放式生成。精确算术、确定性规则与副作用应该留在代码里。
+
+## 时间线
+
+- **00:00** 一个不写答案的模型
+- **00:54** 从客服分流理解动态“菜单”
+- **01:38** Choice、Score 与 Noul
+- **02:20** 概率、confidence 与成功率
+- **03:38** 置信门控：执行、谨慎或升级
+- **04:27** 模型做判断，代码做动作
+- **05:05** 函数分发与开放参数的边界
+- **05:47** SDE 级联与技能建议
+- **06:54** 同一份 state 上并行提问
+- **07:43** 独立问题为什么会破坏联合约束
+- **08:26** Type-safe 不等于 Truth-safe
+- **09:30** 怎样读厂商速度与成本数字
+- **10:46** Jev 适合怎样的软件分工
+- **11:29** 概率化 if 语句，不是真理机器
+
+## 资料
+
+- [Jev introduction](https://docs.typesafe.ai/introduction)
+- [Choice](https://docs.typesafe.ai/primitives/choice)
+- [Score](https://docs.typesafe.ai/primitives/score)
+- [Noul](https://docs.typesafe.ai/primitives/noul)
+- [Confidence](https://docs.typesafe.ai/confidence)
+- [System One](https://docs.typesafe.ai/concepts/system-one)
+- [How to build with System One](https://docs.typesafe.ai/concepts/how-to-build-with-system-one)
+- [Jev 1.13 model jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13)
+- [Function calling cookbook](https://docs.typesafe.ai/cookbooks/function_calling)
+- [SDE cascade cookbook](https://docs.typesafe.ai/cookbooks/sde_cascade)
+- [Skill suggestion cookbook](https://docs.typesafe.ai/cookbooks/skill_suggestion)
+- [Parallel questions cookbook](https://docs.typesafe.ai/cookbooks/parallel_questions)
+- [Introducing System One Models and Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
+
+厂商披露的速度、成本与工作流结果均为官方自报，并非独立 benchmark。实际效果取决于任务分布、state、候选描述、阈值与评测方式。]]></content:encoded>
+      <pubDate>Mon, 21 Sep 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-09-21-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/podcast/6a2024745db66c870e1ef4bb</link>
+      <itunes:duration>12:00</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>0914 Handoff Tax 特辑 · 换模型，为什么账单会重算？</title>
+      <description><![CDATA[# 0914 Handoff Tax 特辑 · 换模型，为什么账单会重算？
+
+音频：13:41 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+> 大模型换小模型不一定省钱，小模型换大模型也不一定救得回来。多轮 Agent 真正需要路由的，是模型、交接接口、物理缓存状态与剩余任务长度的组合。
+
+## 本期重点
+
+- 一个 Agent 已用大模型工作四十轮，只剩简单收尾。换小模型的输出单价更低，但如果它无法复用大模型的 KV cache，就要重新预填充全部历史；继续用大模型反而可能更便宜。缓存过期、被驱逐或请求落到另一服务副本时，同一个决策又会翻转。
+- The Handoff Tax 在 500 个 SWE-bench Verified 任务上发现：小→大时直接继承完整轨迹，两组模型只恢复高能力模型质量优势的 47% / 36%；Claude 组甚至比从第一步一直用大模型更贵。
+- 交接接口有方向性。升级时删除小模型文字轨迹、保留工作区，质量恢复变好；降级时删除大模型轨迹，质量反而下降。强模型可能需要摆脱低质量推理，小模型却更依赖强模型留下的计划和验证事实。
+- handoff 至少混合三种切换摩擦：语义、工作状态与缓存；另有一笔端到端策略总账——前任已消耗的 token、时间、工具调用和操作步数。
+- 研究空白不是“没人算缓存”。已有论文按 cache read/write、模型切换和 TTL 计价；缺的是 same-model warm vs forced-cold 的受控实验，把重新预填充成本与跨模型残余效应分开。
+
+## 时间线
+
+- 00:00 降级为什么可能更贵：四十轮热缓存与完整重算
+- 01:54 The Handoff Tax：升级救不回来，降级却可能成立
+- 04:23 三种交接摩擦与一笔策略总账
+- 06:28 三种都叫 routing、但所有权结构不同
+- 08:32 缓存已经有人计价，因果问题为何仍未回答
+- 10:25 最小实验：same-model warm / forced-cold
+- 12:41 下一代 router：模型、接口与缓存迁移
+- 13:26 收尾：路由器也是交接经理与缓存调度器
+
+## 三种不同的 routing
+
+1. Router-R1：中央策略模型不交权，只调用候选模型做顾问。
+2. SWE-Router：弱模型先侦察；若需升级，强模型从原始问题重新开始，不续写弱模型的推理。
+3. MTRouter：每一轮都可能换实际执行模型，新模型读取完整对话历史。
+
+它们都叫 routing，却没有在测同一种 handoff。比较结论前，得先问任务所有权到底有没有转移。
+
+## 推荐的最小实验
+
+选择 30–50 个 SWE-bench Verified 任务、一个同系列大小模型对，在固定切换点双向运行：
+
+1. same model + warm cache；
+2. same model + forced-cold；
+3. cross model + raw trace + cold；
+4. cross model + compact trace + cold；
+5. cross model + no textual trace + same working state + cold。
+
+除了成功率与美元，还应报告缓存读写、预填充时间、首字延迟、墙钟时间和接手后的重复工作。策略对照至少包括 always-small、always-large、首轮选完固定、最多切一次与每轮自由切，并让动态策略共用同一个首轮 router。
+
+真正想找到的是一条盈亏分界线：前缀多长、还剩多少轮、缓存存活概率多高时，切换的未来收益才能覆盖重新预填充和交接风险。
+
+## 论文与资料
+
+- The Handoff Tax: https://arxiv.org/abs/2608.24358
+- Session-Aware Agentic Routing: https://vllm-project.github.io/2026/06/02/session-aware-agentic-routing.html
+- Router-R1: https://arxiv.org/abs/2506.09033
+- SWE-Router: https://arxiv.org/abs/2607.00053
+- MTRouter: https://arxiv.org/abs/2604.23530
+- Agent-as-a-Router: https://arxiv.org/abs/2606.22902
+- TwinRouterBench: https://arxiv.org/abs/2605.18859
+- Performance Drift from Model Switching: https://arxiv.org/abs/2603.03111
+- Handoff Debt: https://arxiv.org/abs/2606.02875
+- Cross-Model KV Cache Transfer: https://arxiv.org/abs/2608.03893
+
+## 制作信息
+
+本地 Qwen3-TTS 合成；Jeff=`uncle_fu`，Ada=`serena`，均未加速。所有论文数字均为作者自报；不同 benchmark、模型、价格与预算不可横向比较。Handoff Tax 已计入服务商的缓存读写价格；本期追问的是它尚未通过 warm/cold 对照做因果拆分。]]></description>
+      <content:encoded><![CDATA[# 0914 Handoff Tax 特辑 · 换模型，为什么账单会重算？
+
+音频：13:41 · 本地 Qwen3-TTS · 双主持 Jeff / Ada
+
+> 大模型换小模型不一定省钱，小模型换大模型也不一定救得回来。多轮 Agent 真正需要路由的，是模型、交接接口、物理缓存状态与剩余任务长度的组合。
+
+## 本期重点
+
+- 一个 Agent 已用大模型工作四十轮，只剩简单收尾。换小模型的输出单价更低，但如果它无法复用大模型的 KV cache，就要重新预填充全部历史；继续用大模型反而可能更便宜。缓存过期、被驱逐或请求落到另一服务副本时，同一个决策又会翻转。
+- The Handoff Tax 在 500 个 SWE-bench Verified 任务上发现：小→大时直接继承完整轨迹，两组模型只恢复高能力模型质量优势的 47% / 36%；Claude 组甚至比从第一步一直用大模型更贵。
+- 交接接口有方向性。升级时删除小模型文字轨迹、保留工作区，质量恢复变好；降级时删除大模型轨迹，质量反而下降。强模型可能需要摆脱低质量推理，小模型却更依赖强模型留下的计划和验证事实。
+- handoff 至少混合三种切换摩擦：语义、工作状态与缓存；另有一笔端到端策略总账——前任已消耗的 token、时间、工具调用和操作步数。
+- 研究空白不是“没人算缓存”。已有论文按 cache read/write、模型切换和 TTL 计价；缺的是 same-model warm vs forced-cold 的受控实验，把重新预填充成本与跨模型残余效应分开。
+
+## 时间线
+
+- 00:00 降级为什么可能更贵：四十轮热缓存与完整重算
+- 01:54 The Handoff Tax：升级救不回来，降级却可能成立
+- 04:23 三种交接摩擦与一笔策略总账
+- 06:28 三种都叫 routing、但所有权结构不同
+- 08:32 缓存已经有人计价，因果问题为何仍未回答
+- 10:25 最小实验：same-model warm / forced-cold
+- 12:41 下一代 router：模型、接口与缓存迁移
+- 13:26 收尾：路由器也是交接经理与缓存调度器
+
+## 三种不同的 routing
+
+1. Router-R1：中央策略模型不交权，只调用候选模型做顾问。
+2. SWE-Router：弱模型先侦察；若需升级，强模型从原始问题重新开始，不续写弱模型的推理。
+3. MTRouter：每一轮都可能换实际执行模型，新模型读取完整对话历史。
+
+它们都叫 routing，却没有在测同一种 handoff。比较结论前，得先问任务所有权到底有没有转移。
+
+## 推荐的最小实验
+
+选择 30–50 个 SWE-bench Verified 任务、一个同系列大小模型对，在固定切换点双向运行：
+
+1. same model + warm cache；
+2. same model + forced-cold；
+3. cross model + raw trace + cold；
+4. cross model + compact trace + cold；
+5. cross model + no textual trace + same working state + cold。
+
+除了成功率与美元，还应报告缓存读写、预填充时间、首字延迟、墙钟时间和接手后的重复工作。策略对照至少包括 always-small、always-large、首轮选完固定、最多切一次与每轮自由切，并让动态策略共用同一个首轮 router。
+
+真正想找到的是一条盈亏分界线：前缀多长、还剩多少轮、缓存存活概率多高时，切换的未来收益才能覆盖重新预填充和交接风险。
+
+## 论文与资料
+
+- The Handoff Tax: https://arxiv.org/abs/2608.24358
+- Session-Aware Agentic Routing: https://vllm-project.github.io/2026/06/02/session-aware-agentic-routing.html
+- Router-R1: https://arxiv.org/abs/2506.09033
+- SWE-Router: https://arxiv.org/abs/2607.00053
+- MTRouter: https://arxiv.org/abs/2604.23530
+- Agent-as-a-Router: https://arxiv.org/abs/2606.22902
+- TwinRouterBench: https://arxiv.org/abs/2605.18859
+- Performance Drift from Model Switching: https://arxiv.org/abs/2603.03111
+- Handoff Debt: https://arxiv.org/abs/2606.02875
+- Cross-Model KV Cache Transfer: https://arxiv.org/abs/2608.03893
+
+## 制作信息
+
+本地 Qwen3-TTS 合成；Jeff=`uncle_fu`，Ada=`serena`，均未加速。所有论文数字均为作者自报；不同 benchmark、模型、价格与预算不可横向比较。Handoff Tax 已计入服务商的缓存读写价格；本期追问的是它尚未通过 warm/cold 对照做因果拆分。]]></content:encoded>
+      <pubDate>Mon, 14 Sep 2026 00:30:00 GMT</pubDate>
+      <guid isPermaLink="false">mlsys-feed-2026-09-14-special</guid>
+      <link>https://www.xiaoyuzhoufm.com/podcast/6a2024745db66c870e1ef4bb</link>
+      <itunes:duration>13:41</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>0911 MLSYS 论文简报：删得准，还是删得多</title>
       <description><![CDATA[0911 MLSYS 论文简报：删得准，还是删得多

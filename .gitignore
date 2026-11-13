@@ -8,3 +8,6 @@ miracleplus_compute_application_draft_2026.md
 # a 265 MB checkout was timing out the 10-minute Pages build (2026-08-06).
 # RSS enclosures point at the release download URLs.
 podcast/audio/*.mp3
+
+# private drafts (résumé source etc.) — keep off the public site
+drafts/

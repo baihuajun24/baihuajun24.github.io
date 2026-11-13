@@ -26,6 +26,10 @@
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
         }
 
+        /* Episodes without hosted audio link out to Xiaoyuzhou */
+        .listen-external { margin: 0.75rem 0; }
+        .listen-external .social-link { display: inline-flex; }
+
         /* Hero */
         .show-hero {
             border-top: none;
@@ -367,7 +371,8 @@
         // unavailable (browsers block fetch of feed.xml on file:// pages).
         async function getFeedText() {
             try {
-                const res = await fetch('feed.xml');
+                // no-cache: always revalidate, so a new episode shows up on the next visit
+                const res = await fetch('feed.xml', { cache: 'no-cache' });
                 if (res.ok) return await res.text();
                 throw new Error('HTTP ' + res.status);
             } catch (err) {
@@ -389,7 +394,8 @@
             card.innerHTML =
                 '<div class="episode-date"></div>' +
                 '<h3></h3>' +
-                '<audio controls preload="none"></audio>' +
+                (ep.audioUrl ? '<audio controls preload="none"></audio>'
+                    : '<p class="listen-external"><a class="social-link" target="_blank" rel="noopener"><span>🎧 在小宇宙收听</span></a></p>') +
                 '<details open>' +
                 '<summary>Show Notes 节目笔记</summary>' +
                 '<div class="show-notes"></div>' +
@@ -397,7 +403,8 @@
             card.querySelector('.episode-date').textContent =
                 ep.date + (ep.duration ? ' · ' + ep.duration : '');
             card.querySelector('h3').textContent = ep.title;
-            card.querySelector('audio').src = ep.audioUrl;
+            if (ep.audioUrl) card.querySelector('audio').src = ep.audioUrl;
+            else card.querySelector('.listen-external a').href = ep.link || 'https://www.xiaoyuzhoufm.com/podcast/6a2024745db66c870e1ef4bb';
             card.querySelector('.show-notes').innerHTML = renderMarkdown(ep.notes);
             list.appendChild(card);
 
@@ -421,6 +428,7 @@
                         notes: get('description'),
                         date: formatDate(get('pubDate')),
                         audioUrl: item.querySelector('enclosure')?.getAttribute('url') ?? '',
+                        link: get('link'),
                         duration: item.getElementsByTagNameNS(ITUNES_NS, 'duration')[0]?.textContent ?? '',
                         anchor: get('guid') || 'episode-' + i,
                     };
